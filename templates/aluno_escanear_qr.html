@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Escanear QR Code{% endblock %}
+
+{% block content %}
+<h2 class="text-center">Confirmar Presença</h2>
+
+<div class="card p-4 mx-auto text-center scanner-container" style="max-width: 380px;">
+    <i class="fas fa-camera fa-5x text-success mb-3"></i>
+    <p class="text-muted">Aponte a câmera para o QR Code do evento.</p>
+    
+    <video id="qr-video" class="scanner-video"></video>
+    <div id="outputMessage" class="mt-3 text-danger"></div>
+    <div id="outputData" class="mt-3 text-success font-weight-bold"></div>
+
+    <form id="presencaForm" method="POST" action="{{ url_for('confirmar_presenca') }}" class="mt-4" style="display:none;">
+        <input type="hidden" name="qr_code_lido" id="qr_code_lido">
+        <button type="submit" class="btn btn-success btn-block">Confirmar Presença</button>
+    </form>
+</div>
+
+<a href="{{ url_for('meus_eventos') }}" class="secondary-link text-center">Cancelar e Voltar</a>
+
+<script src="https://rawcdn.githack.com/mebjas/html5-qrcode/master/minified/html5-qrcode.min.js"></script>
+
+<script>
+    function docReady(fn) {
+        if (document.readyState === "complete" || document.readyState === "interactive") {
+            setTimeout(fn, 1);
+        } else {
+            document.addEventListener("DOMContentLoaded", fn);
+        }
+    }
+
+    docReady(function() {
+        var resultContainer = document.getElementById('outputData');
+        var outputMessage = document.getElementById('outputMessage');
+        var formPresenca = document.getElementById('presencaForm');
+        var inputQrCodeLido = document.getElementById('qr_code_lido');
+
+        function onScanSuccess(decodedText, decodedResult) {
+            // Lidar com o resultado do scan aqui
+            outputMessage.innerHTML = 'QR Code Escaneado:';
+            resultContainer.innerHTML = decodedText;
+            
+            // Preenche o campo hidden do formulário e o envia
+            inputQrCodeLido.value = decodedText;
+            formPresenca.style.display = 'block'; // Mostra o botão de confirmar
+            
+            // Opcional: Para parar o scanner após o primeiro scan
+            html5QrcodeScanner.clear(); 
+        }
+
+        function onScanError(errorMessage) {
+            // Lidar com erros de scan aqui
+            // outputMessage.innerHTML = `Erro de Scan: ${errorMessage}`;
+        }
+
+        var html5QrcodeScanner = new Html5QrcodeScanner(
+            "qr-video", { fps: 10, qrbox: {width: 250, height: 250} });
+        html5QrcodeScanner.render(onScanSuccess, onScanError);
+    });
+</script>
+{% endblock %}

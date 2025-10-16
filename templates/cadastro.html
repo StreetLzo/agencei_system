@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Criar Conta{% endblock %}
+
+{% block content %}
+<h2 class="text-center">Criar Conta AGENCEI</h2>
+<form method="POST">
+    <div class="form-group">
+        <label for="nome">Nome Completo</label>
+        <input type="text" class="form-control" name="nome" required>
+    </div>
+    <div class="form-group">
+        <label for="cpf">CPF (Apenas números)</label>
+        <input type="text" class="form-control" name="cpf" required>
+    </div>
+    <div class="form-group">
+        <label for="senha">Criar Senha</label>
+        <input type="password" class="form-control" name="senha" required>
+    </div>
+    <div class="form-group mt-3">
+        <label>Tipo de Acesso:</label>
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="tipo" id="aluno" value="aluno" checked>
+            <label class="form-check-label" for="aluno">👩‍🎓 Sou Aluno</label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="tipo" id="organizador" value="organizador">
+            <label class="form-check-label" for="organizador">✅ Sou Organizador</label>
+        </div>
+    </div>
+    
+    <button type="submit" class="btn btn-success btn-lg btn-block mt-4">Registrar</button>
+</form>
+
+<div class="text-center mt-3">
+    <a href="{{ url_for('login') }}" class="secondary-link">Já tem conta? Entrar</a>
+</div>
+{% endblock %}

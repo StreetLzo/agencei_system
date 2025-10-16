@@ -1,0 +1,161 @@
+/* static/style.css */
+
+/* Cores Principais */
+:root {
+    --color-primary: #37a6ac; /* Azul Teal da logo */
+    --color-secondary: #8bc34a; /* Verde Limão da logo */
+    --color-dark: #343a40; /* Texto escuro */
+    --color-light: #f8f9fa; /* Fundo claro */
+    --color-text-grey: #6c757d; /* Cinza para capacidade */
+}
+
+body {
+    background-color: var(--color-light);
+    font-family: 'Arial', sans-serif;
+    padding: 0;
+    margin: 0;
+}
+
+/* ------------------------------------------------ */
+/* ESTILO MOBILE (Padrão, até 768px) */
+/* ------------------------------------------------ */
+.mobile-container {
+    max-width: 500px;
+    margin: 30px auto;
+    background-color: white;
+    border-radius: 25px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    /* Simulação de Celular (Apenas em telas pequenas) */
+    border: 8px solid var(--color-dark);
+    border-top: 40px solid var(--color-dark); 
+    position: relative;
+}
+
+.mobile-container::before {
+    /* Notch / Câmera Simulado */
+    content: '';
+    position: absolute;
+    top: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 10px;
+    background-color: var(--color-dark);
+    border-radius: 0 0 10px 10px;
+}
+
+/* ------------------------------------------------ */
+/* ESTILO DESKTOP (Responsividade acima de 768px) */
+/* ------------------------------------------------ */
+@media (min-width: 768px) {
+    body {
+        background-color: #e9ecef; /* Fundo cinza claro para desktop */
+        padding: 40px;
+    }
+
+    .mobile-container {
+        /* Remove o efeito de celular em desktop */
+        max-width: 900px; /* Maior largura para desktop */
+        margin: 50px auto;
+        border: none;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.05); /* Sombra mais sutil */
+        border-radius: 10px;
+        padding: 40px;
+    }
+    
+    .mobile-container::before {
+        /* Remove o notch em desktop */
+        content: none;
+    }
+
+    .card-sala, .card-evento {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr; /* Colunas para organizar melhor */
+        align-items: center;
+        padding: 20px;
+    }
+    
+    .card-sala .card-title {
+        font-size: 1.5rem;
+    }
+    
+    .card-sala .capacidade, .card-evento .details {
+        text-align: right;
+    }
+    
+    .btn-link {
+        justify-self: end;
+    }
+}
+
+/* Estilos Comuns (mantidos) */
+.logo { font-size: 24px; font-weight: 800; margin-bottom: 20px; }
+.logo span.ag { color: #A9A9A9; }
+.logo span.encei { color: var(--color-secondary); }
+
+.card-sala, .card-evento {
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 15px;
+    transition: all 0.2s ease-in-out;
+}
+
+.card-sala:hover, .card-evento:hover {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.card-sala .card-title, .card-evento .card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-dark);
+}
+
+.card-sala .capacidade, .card-evento .details {
+    color: var(--color-text-grey);
+    font-size: 0.9rem;
+}
+
+.btn-primary { background-color: var(--color-primary); border-color: var(--color-primary); }
+.btn-primary:hover { background-color: #2b7d81; border-color: #2b7d81; }
+
+.btn-success { background-color: var(--color-secondary); border-color: var(--color-secondary); }
+.btn-success:hover { background-color: #6da33a; border-color: #6da33a; }
+
+.secondary-link {
+    color: var(--color-primary);
+    font-weight: 600;
+    display: block;
+    margin-top: 20px;
+    text-align: left;
+}
+.secondary-link:hover { color: #2b7d81; text-decoration: underline; }
+
+.list-group-item { border-left: 5px solid; margin-bottom: 5px; }
+.list-group-item.presente { border-left-color: var(--color-secondary); }
+.list-group-item.aguardando { border-left-color: var(--color-text-grey); }
+
+/* Para QR Code */
+.qr-code-img {
+    max-width: 250px; 
+    border: 5px solid white; 
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+/* Novo estilo para a área de vídeo do scanner */
+.scanner-container {
+    background-color: #f0f0f0;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
+}
+.scanner-video {
+    width: 100%;
+    max-width: 400px; /* Limita o tamanho do vídeo */
+    height: auto;
+    border-radius: 8px;
+    display: block; /* Remove espaço extra abaixo */
+    margin: 0 auto;
+    background-color: #333; /* Fundo escuro para vídeo */
+}

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Reservar {{ sala.nome }}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center mb-4" style="color: #004d40;">Reservar {{ sala.nome }}</h2>
+    <div class="card p-4 shadow-sm">
+        <h4>Detalhes da Sala</h4>
+        <p>Capacidade: <strong>{{ sala.capacidade }} Pessoas</strong></p>
+        <hr>
+
+        <form method="POST">
+            <div class="form-group">
+                <label for="nome_evento">Nome do evento</label>
+                <input type="text" class="form-control" name="nome_evento" required>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="data">Data</label>
+                    <input type="date" class="form-control" name="data" required>
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="hora">Horário</label>
+                    <input type="time" class="form-control" name="hora" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="duracao">Duração (Horas)</label>
+                    <input type="number" step="0.5" class="form-control" name="duracao" required>
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="num_pessoas">Número de pessoas</label>
+                    <input type="number" class="form-control" name="num_pessoas" max="{{ sala.capacidade }}" required>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-success btn-lg btn-block mt-3">Confirmar Reserva</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

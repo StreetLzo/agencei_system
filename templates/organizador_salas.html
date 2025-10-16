@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Salas Disponíveis{% endblock %}
+
+{% block content %}
+<h2 class="text-left">Salas Disponíveis</h2>
+
+<div class="form-group">
+    <input type="text" class="form-control" placeholder="Buscar" aria-label="Buscar">
+</div>
+
+{% for sala in salas %}
+<div class="card-sala d-flex justify-content-between align-items-center">
+    <div>
+        <h5 class="card-title">{{ sala.nome }}</h5>
+        <p class="capacidade">Capacidade: {{ sala.capacidade }} pessoas</p>
+    </div>
+    <a href="{{ url_for('reservar_sala', sala_id=sala.id) }}" class="btn btn-link btn-sm p-0">Reservar</a>
+</div>
+{% endfor %}
+
+<a href="{{ url_for('minhas_reservas') }}" class="secondary-link">Minhas reservas</a>
+{% endblock %}

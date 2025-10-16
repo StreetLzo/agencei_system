@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Meus Eventos Inscritos{% endblock %}
+
+{% block content %}
+<h2 class="text-left">Meus Eventos Inscritos</h2>
+
+{% for evento in eventos %}
+{% set status_class = 'presente' if evento.status_presenca == 'Presente' else 'aguardando' %}
+{% set status_badge = 'success' if evento.status_presenca == 'Presente' else 'warning' %}
+
+<div class="card-evento d-flex justify-content-between align-items-center list-group-item {{ status_class }}">
+    <div>
+        <h5 class="card-title">{{ evento.nome }}</h5>
+        <p class="details mb-1">Local: **{{ evento.local }}**</p>
+        <p class="details text-muted">{{ evento.data_hora }}</p>
+    </div>
+    <div class="text-right">
+        <p class="mb-1">Status: <span class="badge badge-{{ status_badge }}">{{ evento.status_presenca }}</span></p>
+        
+        {% if evento.status_presenca == 'Aguardando' %}
+            <a href="{{ url_for('escanear_qr_code') }}" class="btn btn-success btn-sm mt-2">Marcar Presença</a>
+        {% else %}
+            <button class="btn btn-secondary btn-sm mt-2" disabled>Presença Confirmada</button>
+        {% endif %}
+    </div>
+</div>
+{% endfor %}
+
+<a href="{{ url_for('aluno_eventos_disponiveis') }}" class="secondary-link">Voltar para Eventos Disponíveis</a>
+{% endblock %}

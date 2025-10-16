@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<h2 class="text-center">Acesso ao Sistema</h2>
+<form method="POST">
+    <div class="form-group">
+        <label for="cpf">CPF</label>
+        <input type="text" class="form-control" name="cpf" placeholder="Seu CPF (apenas números)" required>
+    </div>
+    <div class="form-group">
+        <label for="senha">Senha</label>
+        <input type="password" class="form-control" name="senha" placeholder="Sua senha" required>
+    </div>
+    
+    <button type="submit" class="btn btn-primary btn-lg btn-block mt-4">Entrar</button>
+</form>
+
+<div class="text-center mt-3">
+    <a href="{{ url_for('cadastro') }}" class="secondary-link">Não tem conta? Criar Conta</a>
+</div>
+{% endblock %}
