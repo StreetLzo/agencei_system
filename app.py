@@ -237,7 +237,7 @@ def minhas_reservas():
 
     eventos_data = []
     for evento in eventos:
-        sala = Sala.query.get(evento.sala_id)
+        sala = db.session.get(Sala, evento.sala_id)
         num_inscritos = Inscricao.query.filter_by(evento_id=evento.id).count()
 
         evento_fim = evento.data_hora + timedelta(hours=evento.duracao_horas)
