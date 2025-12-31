@@ -2,21 +2,68 @@
 {% block title %}Login{% endblock %}
 
 {% block content %}
-<h2 class="text-center">Acesso ao Sistema</h2>
-<form method="POST">
-    <div class="form-group">
-        <label for="cpf">CPF</label>
-        <input type="text" class="form-control" name="cpf" placeholder="Seu CPF (apenas números)" required>
-    </div>
-    <div class="form-group">
-        <label for="senha">Senha</label>
-        <input type="password" class="form-control" name="senha" placeholder="Sua senha" required>
-    </div>
-    
-    <button type="submit" class="btn btn-primary btn-lg btn-block mt-4">Entrar</button>
-</form>
 
-<div class="text-center mt-3">
-    <a href="{{ url_for('cadastro') }}" class="secondary-link">Não tem conta? Criar Conta</a>
-</div>
+<section class="section" style="background: #fff;">
+
+    <div style="max-width: 720px; margin: 60px auto 0; padding: 0 24px;">
+
+        <h2 style="font-weight: 600; margin-bottom: 8px;">
+            Acesso ao sistema
+        </h2>
+
+        <p style="color: #6b7280; margin-bottom: 32px;">
+            Informe seus dados para continuar
+        </p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 
+                        'success' if category == 'success'
+                        else 'danger' if category == 'error'
+                        else 'info' }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST">
+
+            <div class="field">
+                <label>CPF</label>
+                <input
+                    type="text"
+                    name="cpf"
+                    placeholder="Somente números"
+                    required>
+            </div>
+
+            <div class="field">
+                <label>Senha</label>
+                <input
+                    type="password"
+                    name="senha"
+                    required>
+            </div>
+
+        <button type="submit" class="btn btn-primary btn-reserve">
+        <i class="fas fa-check-circle"></i>
+        Entrar
+    </button>
+
+
+            <div style="margin-top: 24px;">
+                <a href="{{ url_for('cadastro') }}"
+                   style="color: #374151; text-decoration: none;">
+                    Criar conta
+                </a>
+            </div>
+
+        </form>
+
+    </div>
+
+</section>
+
 {% endblock %}

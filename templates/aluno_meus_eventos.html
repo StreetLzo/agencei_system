@@ -2,29 +2,82 @@
 {% block title %}Meus Eventos Inscritos{% endblock %}
 
 {% block content %}
-<h2 class="text-left">Meus Eventos Inscritos</h2>
 
-{% for evento in eventos %}
-{% set status_class = 'presente' if evento.status_presenca == 'Presente' else 'aguardando' %}
-{% set status_badge = 'success' if evento.status_presenca == 'Presente' else 'warning' %}
+<section class="section">
 
-<div class="card-evento d-flex justify-content-between align-items-center list-group-item {{ status_class }}">
-    <div>
-        <h5 class="card-title">{{ evento.nome }}</h5>
-        <p class="details mb-1">Local: **{{ evento.local }}**</p>
-        <p class="details text-muted">{{ evento.data_hora }}</p>
+    <div class="section-surface spotlight" style="max-width: 1000px; margin: 0 auto;">
+
+        <!-- HEADER -->
+        <div class="section-header">
+            <h2 class="section-title">Meus Eventos Inscritos</h2>
+            <p class="section-subtitle">
+                Acompanhe seus eventos e marque presença
+            </p>
+        </div>
+
+        <!-- LISTA -->
+        <div class="data-list">
+
+            {% for evento in eventos %}
+                {% set presente = evento.status_presenca == 'Presente' %}
+
+                <div class="data-row">
+
+                    <div>
+                        <div class="data-title">
+                            {{ evento.nome }}
+                        </div>
+                        <div class="data-meta">
+                            {{ evento.local }} • {{ evento.data_hora }}
+                        </div>
+
+                        <div style="margin-top: 6px;">
+                            {% if presente %}
+                                <span class="badge badge-success">
+                                    Presença Confirmada
+                                </span>
+                            {% else %}
+                                <span class="badge badge-warning">
+                                    Aguardando Presença
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div>
+                        {% if not presente %}
+                            <a href="{{ url_for('escanear_qr_code') }}"
+                               class="btn btn-primary btn-sm">
+                                Marcar Presença
+                            </a>
+                        {% else %}
+                            <button class="btn btn-secondary btn-sm" disabled>
+                                Confirmado ✓
+                            </button>
+                        {% endif %}
+                    </div>
+
+                </div>
+
+            {% endfor %}
+
+            {% if eventos|length == 0 %}
+                <div class="text-center text-muted py-4">
+                    Você ainda não está inscrito em nenhum evento.
+                </div>
+            {% endif %}
+
+        </div>
+
+        <!-- FOOTER -->
+        <div class="text-center mt-5">
+            <a href="{{ url_for('aluno_eventos_disponiveis') }}" class="secondary-link">
+                ← Voltar para eventos disponíveis
+            </a>
+        </div>
+
     </div>
-    <div class="text-right">
-        <p class="mb-1">Status: <span class="badge badge-{{ status_badge }}">{{ evento.status_presenca }}</span></p>
-        
-        {% if evento.status_presenca == 'Aguardando' %}
-            <a href="{{ url_for('escanear_qr_code') }}" class="btn btn-success btn-sm mt-2">Marcar Presença</a>
-        {% else %}
-            <button class="btn btn-secondary btn-sm mt-2" disabled>Presença Confirmada</button>
-        {% endif %}
-    </div>
-</div>
-{% endfor %}
 
-<a href="{{ url_for('aluno_eventos_disponiveis') }}" class="secondary-link">Voltar para Eventos Disponíveis</a>
+</section>
+
 {% endblock %}

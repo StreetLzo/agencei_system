@@ -2,21 +2,55 @@
 {% block title %}Salas Disponíveis{% endblock %}
 
 {% block content %}
-<h2 class="text-left">Salas Disponíveis</h2>
 
-<div class="form-group">
-    <input type="text" class="form-control" placeholder="Buscar" aria-label="Buscar">
+<h2 class="section-title mb-2">Salas Disponíveis</h2>
+<p class="section-subtitle mb-5">
+    Escolha uma sala e faça sua reserva
+</p>
+
+<!-- BUSCA (SEM CONTAINER, SEM CAIXA) -->
+<div class="form-group mb-5" style="max-width: 420px;">
+    <input type="text"
+           class="form-control"
+           placeholder="Buscar sala..."
+           aria-label="Buscar">
 </div>
 
-{% for sala in salas %}
-<div class="card-sala d-flex justify-content-between align-items-center">
-    <div>
-        <h5 class="card-title">{{ sala.nome }}</h5>
-        <p class="capacidade">Capacidade: {{ sala.capacidade }} pessoas</p>
+<!-- LISTA -->
+<div class="data-list">
+
+    {% for sala in salas %}
+    <div class="data-row">
+
+        <div>
+            <div class="data-title">
+                {{ sala.nome }}
+            </div>
+            <div class="data-meta">
+                Capacidade: {{ sala.capacidade }} pessoas
+            </div>
+        </div>
+
+        <a href="{{ url_for('reservar_sala', sala_id=sala.id) }}"
+           class="btn btn-primary btn-sm">
+            Reservar
+        </a>
+
     </div>
-    <a href="{{ url_for('reservar_sala', sala_id=sala.id) }}" class="btn btn-link btn-sm p-0">Reservar</a>
-</div>
-{% endfor %}
+    {% endfor %}
 
-<a href="{{ url_for('minhas_reservas') }}" class="secondary-link">Minhas reservas</a>
+    {% if salas|length == 0 %}
+    <div class="text-muted py-4">
+        Nenhuma sala disponível no momento.
+    </div>
+    {% endif %}
+
+</div>
+
+<div class="mt-5">
+    <a href="{{ url_for('minhas_reservas') }}" class="secondary-link">
+        Ver minhas reservas →
+    </a>
+</div>
+
 {% endblock %}

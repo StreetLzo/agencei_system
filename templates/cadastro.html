@@ -2,36 +2,82 @@
 {% block title %}Criar Conta{% endblock %}
 
 {% block content %}
-<h2 class="text-center">Criar Conta AGENCEI</h2>
-<form method="POST">
-    <div class="form-group">
-        <label for="nome">Nome Completo</label>
-        <input type="text" class="form-control" name="nome" required>
-    </div>
-    <div class="form-group">
-        <label for="cpf">CPF (Apenas números)</label>
-        <input type="text" class="form-control" name="cpf" required>
-    </div>
-    <div class="form-group">
-        <label for="senha">Criar Senha</label>
-        <input type="password" class="form-control" name="senha" required>
-    </div>
-    <div class="form-group mt-3">
-        <label>Tipo de Acesso:</label>
-        <div class="form-check">
-            <input class="form-check-input" type="radio" name="tipo" id="aluno" value="aluno" checked>
-            <label class="form-check-label" for="aluno">👩‍🎓 Sou Aluno</label>
-        </div>
-        <div class="form-check">
-            <input class="form-check-input" type="radio" name="tipo" id="organizador" value="organizador">
-            <label class="form-check-label" for="organizador">✅ Sou Organizador</label>
-        </div>
-    </div>
-    
-    <button type="submit" class="btn btn-success btn-lg btn-block mt-4">Registrar</button>
-</form>
 
-<div class="text-center mt-3">
-    <a href="{{ url_for('login') }}" class="secondary-link">Já tem conta? Entrar</a>
+<div class="section-surface spotlight" style="max-width: 1000px; margin: 0 auto;">
+
+    <!-- HEADER -->
+    <div class="section-header">
+        <h2 class="section-title">Criar conta</h2>
+        <p class="section-subtitle">
+            Leva menos de 1 minuto pra começar
+        </p>
+    </div>
+
+    <!-- MENSAGENS -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 
+                    'success' if category == 'success'
+                    else 'danger' if category == 'error'
+                    else 'info' }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- FORM -->
+    <form method="POST" class="data-list">
+
+        <div class="data-row" style="flex-direction: column; gap: 16px; align-items: stretch;">
+            <div>
+                <label class="data-meta">Nome completo</label>
+                <input type="text" name="nome" class="form-control" required>
+            </div>
+
+            <div>
+                <label class="data-meta">CPF</label>
+                <input type="text" name="cpf" class="form-control" required>
+            </div>
+
+            <div>
+                <label class="data-meta">Senha</label>
+                <input type="password" name="senha" class="form-control" required>
+            </div>
+
+            <div>
+                <label class="data-meta">Tipo de acesso</label>
+
+                <div style="display: flex; gap: 24px; margin-top: 8px;">
+                    <label style="display: flex; gap: 8px; cursor: pointer;">
+                        <input type="radio" name="tipo" value="aluno" checked>
+                        👩‍🎓 Aluno
+                    </label>
+
+                    <label style="display: flex; gap: 8px; cursor: pointer;">
+                        <input type="radio" name="tipo" value="organizador">
+                        ✅ Organizador
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="data-row" style="justify-content: flex-end;">
+            <button type="submit" class="btn btn-primary">
+                Criar conta
+            </button>
+        </div>
+
+    </form>
+
+    <!-- FOOTER -->
+    <div class="text-center mt-5">
+        <a href="{{ url_for('login') }}" class="secondary-link">
+            Já tem conta? Entrar →
+        </a>
+    </div>
+
 </div>
+
 {% endblock %}

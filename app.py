@@ -150,6 +150,7 @@ def home():
     return render_template('home.html')
 
 
+
 # --- Rotas do Organizador ---
 @app.route('/organizador/salas')
 def organizador_salas():
