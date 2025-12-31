@@ -6,7 +6,7 @@
 
 <p align="center">
   <a href="https://agencei-system.onrender.com" target="_blank">
-    <img src="https://img.shields.io/badge/🔗%20VISUALIZE%20O%20PROJETO%20AQUI-000000?style=for-the-badge&logo=vercel&logoColor=white" />
+    <img src="https://img.shields.io/badge/🔗%20VISUALIZE%20O%20PROJETO%20AQUI-2962FF?style=for-the-badge&logo=vercel&logoColor=white" />
   </a>
 </p>
 
