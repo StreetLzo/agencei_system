@@ -3,3 +3,11 @@ __pycache__/
 *.pyc
 instance/
 .env
+env/
+venv/
+instance/
+__pycache__/
+*.pyc
+.DS_Store
+.vscode/
+agencei.db
