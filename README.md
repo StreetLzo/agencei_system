@@ -17,7 +17,7 @@
   </a>
 
 </p>
-
+⚠️ Aplicação hospedada em plano gratuito. O primeiro acesso pode levar até 1 minuto para responder.
 ---
 
 ## 📌 Sobre o projeto
