@@ -1,4 +1,4 @@
-<h1 align="center">🚀 Agencei</h1>
+<h1 align="center">Agencei</h1>
 
 <p align="center">
   Controle de presença digital para eventos institucionais, simples, rápido e sem papel.
@@ -30,7 +30,7 @@ A proposta é oferecer uma solução **digital, prática e confiável**, focada 
 
 ---
 
-## ❌ O problema
+##  O problema
 
 - Listas de papel
 - Perda de tempo na entrada
@@ -39,7 +39,7 @@ A proposta é oferecer uma solução **digital, prática e confiável**, focada 
 
 ---
 
-## ✅ A solução
+##  A solução
 
 Com o **Agencei**, o processo é simples:
 
@@ -52,17 +52,17 @@ Tudo isso **sem filas, sem papel e sem confusão**.
 
 ---
 
-## ⚙️ Funcionalidades
+##  Funcionalidades
 
-- 🔐 Login e cadastro de usuários  
-- 📅 Criação e gerenciamento de eventos  
-- 📲 Registro de presença via QR Code  
-- 📋 Lista automática de participantes  
-- 🏫 Reserva e organização de locais  
+-  Login e cadastro de usuários  
+-  Criação e gerenciamento de eventos  
+-  Registro de presença via QR Code  
+-  Lista automática de participantes  
+-  Reserva e organização de locais  
 
 ---
 
-## 🧑‍🎓 Público-alvo
+##  Público-alvo
 
 - Instituições educacionais  
 - Órgãos públicos  
@@ -71,7 +71,7 @@ Tudo isso **sem filas, sem papel e sem confusão**.
 
 ---
 
-## 🛠️ Tecnologias utilizadas
+##  Tecnologias utilizadas
 
 
 - HTML5  
@@ -81,7 +81,7 @@ Tudo isso **sem filas, sem papel e sem confusão**.
 
 ---
 
-## 👨‍💻 Desenvolvedor
+##  Desenvolvedor
 
 Projeto desenvolvido por **Felipe Alves Torres**,  
 Técnico em Informática, com foco em desenvolvimento web e soluções digitais.
