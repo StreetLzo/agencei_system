@@ -84,43 +84,7 @@ def login():
     return render_template('login.html')
 
 
-@app.route('/cadastro', methods=['GET', 'POST'])
-def cadastro():
-    if request.method == 'POST':
-        nome = request.form.get('nome')
-        cpf = request.form.get('cpf')
-        senha = request.form.get('senha')
-        tipo = request.form.get('tipo')
 
-        # validações básicas
-        if not (nome and cpf and senha and tipo):
-            flash('Por favor, preencha todos os campos.', 'error')
-            return render_template('cadastro.html')
-
-        if Usuario.query.filter_by(cpf=cpf).first():
-            flash('❌ Já existe uma conta registrada com este CPF.', 'error')
-            return render_template('cadastro.html')
-
-        # armazenar senha como hash
-        senha_hash = generate_password_hash(senha)
-        novo_usuario = Usuario(nome=nome, cpf=cpf, senha=senha_hash, tipo=tipo)
-
-        try:
-            db.session.add(novo_usuario)
-            db.session.commit()
-            flash('✅ Conta criada com sucesso! Faça login.', 'success')
-
-            # Redirecionar para a página salva após login/cadastro, se houver
-            next_url = session.pop('next_url', None)
-            if next_url:
-                return redirect(next_url)
-
-            return redirect(url_for('login'))
-        except Exception as e:
-            db.session.rollback()
-            flash(f'Erro ao criar conta: {e}', 'error')
-
-    return render_template('cadastro.html')
 
 
 @app.route('/logout')
