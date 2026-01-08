@@ -4,7 +4,10 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timedelta
 from sqlalchemy import and_, or_
 from werkzeug.security import generate_password_hash, check_password_hash
+from routes.admin import admin_bp
+from extensions import db
 import os
+
 
 # --- Configurações iniciais ---
 app = Flask(__name__)
