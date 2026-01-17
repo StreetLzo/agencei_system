@@ -1,13 +1,28 @@
-venv/
-__pycache__/
-*.pyc
-instance/
-.env
+# --- Ambientes Virtuais ---
 env/
 venv/
-instance/
+ENV/
+.venv/
+
+# --- Cache e Python ---
 __pycache__/
 *.pyc
-.DS_Store
+*.pyo
+*.pyd
+.pytest_cache/
+
+# --- Configurações Sensíveis e Dados ---
+.env
+instance/
+*.db
+*.sqlite
+
+# --- IDEs e Editores ---
 .vscode/
-agencei.db
+.idea/
+*.swp
+*.swo
+
+# --- Sistema Operacional ---
+.DS_Store
+Thumbs.db
