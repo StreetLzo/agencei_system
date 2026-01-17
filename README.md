@@ -6,87 +6,76 @@
 
 <p align="center">
   <a href="https://agencei-system.onrender.com" target="_blank">
-    <img src="https://img.shields.io/badge/🔗%20VISUALIZE%20O%20PROJETO%20AQUI-2962FF?style=for-the-badge&logo=vercel&logoColor=white" />
+    <img src="https://img.shields.io/badge/VISUALIZE%20O%20PROJETO%20AQUI-2962FF?style=for-the-badge&logo=render&logoColor=white" />
   </a>
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/status-descontinuado-red" />
+  <img src="https://img.shields.io/badge/status-em%20desenvolvimento-orange" />
   <img src="https://img.shields.io/badge/projeto-acadêmico%20%2F%20pessoal-blue" />
-    
-  </a>
-
 </p>
-⚠️ Aplicação hospedada em plano gratuito. O primeiro acesso pode levar até 1 minuto para responder.
+
+> **Nota:** Aplicação hospedada em plano gratuito. O servidor entra em modo de espera após inatividade, portanto, o primeiro acesso pode levar até 1 minuto para carregar.
 
 ---
 
-## 📌 Sobre o projeto
+## Contas de Demonstração (Coringa)
 
-O **Agencei** é um aplicativo desenvolvido para resolver um problema comum em eventos, palestras e atividades institucionais:  
-o **controle manual de presença**, que é demorado, confuso e sujeito a erros.
+Para testar as diferentes visões do sistema sem a necessidade de criar um novo cadastro, utilize as credenciais abaixo:
 
-A proposta é oferecer uma solução **digital, prática e confiável**, focada principalmente em **instituições educacionais e públicas**.
-
----
-
-##  O problema
-
-- Listas de papel
-- Perda de tempo na entrada
-- Erros no registro de presença
-- Dificuldade para organizar participantes e locais
+| Perfil | CPF | Senha | Funcionalidades |
+| :--- | :--- | :--- | :--- |
+| **Administrador** | `00000000001` | `admin123` | Gerenciamento de usuários, locais e logs. |
+| **Organizador** | `00000000002` | `org123` | Criação de eventos e listas de presença. |
+| **Aluno** | `00000000003` | `aluno123` | Inscrição em eventos e histórico pessoal. |
 
 ---
 
-##  A solução
+## Sobre o projeto
 
-Com o **Agencei**, o processo é simples:
+O **Agencei** é um sistema desenvolvido para otimizar o controle de presença em eventos e atividades institucionais, substituindo listas físicas por uma solução digital baseada em QR Code.
 
-1. O organizador cadastra o evento  
-2. O sistema gera um **QR Code**  
-3. O participante escaneia o código  
-4. A presença é registrada automaticamente  
+### O Problema
+- Listas de papel ineficientes e sujeitas a rasuras.
+- Lentidão no processo de entrada em grandes eventos.
+- Dificuldade na consolidação posterior dos dados de presença.
 
-Tudo isso **sem filas, sem papel e sem confusão**.
-
----
-
-##  Funcionalidades
-
--  Login e cadastro de usuários  
--  Criação e gerenciamento de eventos  
--  Registro de presença via QR Code  
--  Lista automática de participantes  
--  Reserva e organização de locais  
+### A Solução
+1. O organizador realiza o cadastro do evento e define o local.
+2. O sistema gera um QR Code exclusivo.
+3. O participante realiza a leitura do código via dispositivo móvel.
+4. A presença é validada e registrada em tempo real no banco de dados.
 
 ---
 
-##  Público-alvo
+## Tecnologias Utilizadas
 
-- Instituições educacionais  
-- Órgãos públicos  
-- Organizadores de eventos internos  
-- Escolas, seminários e palestras  
+O projeto segue o padrão Application Factory e utiliza arquitetura MVC:
 
----
-
-##  Tecnologias utilizadas
-
-
-- HTML5  
-- CSS3  
-- JavaScript  
-- Python
+- **Backend:** Python com Flask
+- **Banco de Dados:** SQLite (com SQLAlchemy ORM)
+- **Autenticação:** Flask-Login
+- **Frontend:** HTML5, CSS3, JavaScript e Jinja2
+- **Hospedagem:** Render
 
 ---
 
-##  Desenvolvedor
+## Instruções para Execução Local
 
-Projeto desenvolvido por **Felipe Alves Torres**,  
-Técnico em Informática, com foco em desenvolvimento web e soluções digitais.
+1. Clone o repositório: `git clone https://github.com/seu-usuario/seu-repo.git`
+2. Crie um ambiente virtual: `python -m venv venv`
+3. Ative o ambiente virtual:
+   - Windows: `venv\Scripts\activate`
+   - Linux/Mac: `source venv/bin/activate`
+4. Instale as dependências: `pip install -r requirements.txt`
+5. Execute o script de inicialização do banco: `python seed.py`
+6. Inicie a aplicação: `python app.py`
 
 ---
+
+## Desenvolvedor
+
+Projeto desenvolvido por **Felipe Alves Torres**, Técnico em Informática.
 
 <p align="center">
   <strong>Agencei</strong><br/>
