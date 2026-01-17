@@ -51,11 +51,6 @@ def seed():
         
         db.session.commit()
         print("✅ Seed finalizado com sucesso!")
-        
-sala1 = Sala.query.filter_by(nome="Auditório A").first()
-if not sala1:
-    sala1 = Sala(nome="Auditório A", capacidade=100, descricao="Principal", ativa=True)
-    db.session.add(sala1)
-    db.session.commit()
+
 if __name__ == "__main__":
     seed()
