@@ -1,74 +1,74 @@
-from app import create_app
+"""
+Model: Sala
+Representa as salas/locais disponíveis para eventos
+"""
 from extensions import db
-from models.user import Usuario
-from models.sala import Sala
-from werkzeug.security import generate_password_hash
+from datetime import datetime
 
-def seed():
-    app = create_app()
-    with app.app_context():
-        print("🔨 Inicializando banco de dados...")
-        # Cria as tabelas se elas não existirem
-        db.create_all()
 
-        # 1. Cadastro de Usuários Coringa
-        users = [
-            {"nome": "Administrador Demo", "cpf": "00000000001", "senha": "admin123", "tipo": "admin"},
-            {"nome": "Organizador Demo", "cpf": "00000000002", "senha": "org123", "tipo": "organizador"},
-            {"nome": "Aluno Demo", "cpf": "00000000003", "senha": "aluno123", "tipo": "aluno"}
-        ]
-
-        for u in users:
-            if not Usuario.query.filter_by(cpf=u['cpf']).first():
-                print(f"👤 Criando usuário: {u['nome']}...")
-                novo_usuario = Usuario(
-                    nome=u['nome'],
-                    cpf=u['cpf'],
-                    tipo=u['tipo'],
-                    ativa=True # Verifique se no seu modelo Usuario o campo é 'ativo' ou 'ativa'
-                )
-                novo_usuario.senha = generate_password_hash(u['senha'])
-                db.session.add(novo_usuario)
-
-        # 2. Cadastro de Salas Coringa (Baseado no seu modelo Sala)
-        salas_demo = [
-            {
-                "nome": "Auditório Principal", 
-                "capacidade": 150, 
-                "descricao": "Espaço amplo para palestras e seminários",
-                "ativa": True
-            },
-            {
-                "nome": "Laboratório de Informática", 
-                "capacidade": 40, 
-                "descricao": "Equipado com computadores e projetor",
-                "ativa": True
-            },
-            {
-                "nome": "Sala de Reuniões 01", 
-                "capacidade": 15, 
-                "descricao": "Ideal para grupos de trabalho menores",
-                "ativa": True
-            }
-        ]
-
-        for s in salas_demo:
-            if not Sala.query.filter_by(nome=s['nome']).first():
-                print(f"🏠 Criando sala: {s['nome']}...")
-                nova_sala = Sala(
-                    nome=s['nome'],
-                    capacidade=s['capacidade'],
-                    descricao=s['descricao'],
-                    ativa=s['ativa']
-                )
-                db.session.add(nova_sala)
+class Sala(db.Model):
+    """
+    Model para salas físicas do CEI
+    """
+    __tablename__ = 'sala'
+    
+    # Campos principais
+    id = db.Column(db.Integer, primary_key=True)
+    nome = db.Column(db.String(100), nullable=False, unique=True)
+    capacidade = db.Column(db.Integer, nullable=False)
+    descricao = db.Column(db.Text, nullable=True)
+    ativa = db.Column(db.Boolean, default=True)
+    
+    # Metadados
+    criado_em = db.Column(db.DateTime, default=datetime.utcnow)
+    atualizado_em = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relacionamentos
+    eventos = db.relationship('Evento', backref='sala', lazy=True)
+    
+    def __repr__(self):
+        return f'<Sala {self.nome} (Cap: {self.capacidade})>'
+    
+    def tem_capacidade_para(self, num_pessoas):
+        """Verifica se a sala comporta o número de pessoas"""
+        return self.capacidade >= num_pessoas
+    
+    def esta_disponivel_em(self, data_hora, duracao_horas):
+        """
+        Verifica se a sala está disponível no horário solicitado
+        Retorna: (disponivel: bool, evento_conflitante: Evento ou None)
+        """
+        from models.evento import Evento
+        from datetime import timedelta
         
-        try:
-            db.session.commit()
-            print("✅ Seed finalizado com sucesso!")
-        except Exception as e:
-            db.session.rollback()
-            print(f"❌ Erro ao salvar dados: {str(e)}")
-
-if __name__ == "__main__":
-    seed()
+        fim_solicitado = data_hora + timedelta(hours=duracao_horas)
+        
+        # Buscar eventos da sala que possam conflitar
+        eventos = Evento.query.filter_by(sala_id=self.id).all()
+        
+        for evento in eventos:
+            evento_fim = evento.data_hora + timedelta(hours=evento.duracao_horas)
+            
+            # Verifica sobreposição: novo_inicio < evento_fim AND evento_inicio < novo_fim
+            if data_hora < evento_fim and evento.data_hora < fim_solicitado:
+                return False, evento
+        
+        return True, None
+    
+    @staticmethod
+    def listar_disponiveis(data_hora, duracao_horas, capacidade_minima=0):
+        """
+        Lista todas as salas disponíveis para um horário específico
+        """
+        salas = Sala.query.filter(
+            Sala.ativa == True,
+            Sala.capacidade >= capacidade_minima
+        ).all()
+        
+        salas_disponiveis = []
+        for sala in salas:
+            disponivel, _ = sala.esta_disponivel_em(data_hora, duracao_horas)
+            if disponivel:
+                salas_disponiveis.append(sala)
+        
+        return salas_disponiveis
