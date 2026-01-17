@@ -1,8 +1,8 @@
 from app import create_app
 from extensions import db
-from models.user import Usuario # Verifique se o caminho está correto
+from models.user import Usuario 
 from werkzeug.security import generate_password_hash
-
+from models.sala import Sala
 def seed():
     app = create_app()
     with app.app_context():
@@ -51,6 +51,11 @@ def seed():
         
         db.session.commit()
         print("✅ Seed finalizado com sucesso!")
-
+        
+sala1 = Sala.query.filter_by(nome="Auditório A").first()
+if not sala1:
+    sala1 = Sala(nome="Auditório A", capacidade=100, descricao="Principal", ativa=True)
+    db.session.add(sala1)
+    db.session.commit()
 if __name__ == "__main__":
     seed()
