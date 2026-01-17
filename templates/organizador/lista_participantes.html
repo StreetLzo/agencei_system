@@ -18,10 +18,11 @@
             </div>
             <div class="card-body text-center">
                 <p class="mb-4">Os participantes devem escanear este código durante o evento</p>
-                
+
                 <div class="qr-container">
                     <div id="qrcode"></div>
-                    <div style="margin-top: 1rem; font-family: monospace; font-size: 0.875rem; font-weight: 600; color: var(--gray-700); padding: 0.5rem 1rem; background: var(--gray-100); border-radius: var(--radius-md); display: inline-block;">
+                    <div
+                        style="margin-top: 1rem; font-family: monospace; font-size: 0.875rem; font-weight: 600; color: var(--gray-700); padding: 0.5rem 1rem; background: var(--gray-100); border-radius: var(--radius-md); display: inline-block;">
                         {{ evento.qr_code_link }}
                     </div>
                 </div>
@@ -33,25 +34,26 @@
             </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+        <div
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
             {% set total_inscritos = inscricoes|length %}
             {% set total_presentes = inscricoes|selectattr('status_presenca', 'equalto', 'Presente')|list|length %}
             {% set total_aguardando = inscricoes|selectattr('status_presenca', 'equalto', 'Aguardando')|list|length %}
-            
+
             <div class="card text-center">
                 <div class="card-body">
                     <h2 class="mb-1">{{ total_inscritos }}</h2>
                     <small class="text-muted">Total Inscritos</small>
                 </div>
             </div>
-            
+
             <div class="card text-center" style="border-left: 4px solid var(--success);">
                 <div class="card-body">
                     <h2 class="text-success mb-1">{{ total_presentes }}</h2>
                     <small class="text-muted">Confirmaram Presença</small>
                 </div>
             </div>
-            
+
             <div class="card text-center" style="border-left: 4px solid var(--warning);">
                 <div class="card-body">
                     <h2 class="text-warning mb-1">{{ total_aguardando }}</h2>
@@ -64,7 +66,7 @@
             <div class="card-header">
                 <h3 class="mb-0">Lista Completa de Participantes</h3>
             </div>
-            
+
             {% if inscricoes %}
             <div class="card-body p-0">
                 <div class="table-responsive">
@@ -84,22 +86,23 @@
                             <tr>
                                 <td>{{ loop.index }}</td>
                                 <td><strong>{{ inscricao.aluno.nome }}</strong></td>
-                                <td>{{ inscricao.aluno.cpf[:3] }}.{{ inscricao.aluno.cpf[3:6] }}.{{ inscricao.aluno.cpf[6:9] }}-{{ inscricao.aluno.cpf[9:] }}</td>
+                                <td>{{ inscricao.aluno.cpf[:3] }}.{{ inscricao.aluno.cpf[3:6] }}.{{
+                                    inscricao.aluno.cpf[6:9] }}-{{ inscricao.aluno.cpf[9:] }}</td>
                                 <td>{{ inscricao.inscrito_em.strftime('%d/%m/%Y %H:%M') }}</td>
                                 <td>
                                     {% if inscricao.esta_presente %}
-                                        <span class="badge badge-success">Presente</span>
+                                    <span class="badge badge-success">Presente</span>
                                     {% elif inscricao.status_presenca == 'Ausente' %}
-                                        <span class="badge badge-danger">Ausente</span>
+                                    <span class="badge badge-danger">Ausente</span>
                                     {% else %}
-                                        <span class="badge badge-warning">Aguardando</span>
+                                    <span class="badge badge-warning">Aguardando</span>
                                     {% endif %}
                                 </td>
                                 <td>
                                     {% if inscricao.presenca_confirmada_em %}
-                                        {{ inscricao.presenca_confirmada_em.strftime('%d/%m/%Y %H:%M') }}
+                                    {{ inscricao.presenca_confirmada_em.strftime('%d/%m/%Y %H:%M') }}
                                     {% else %}
-                                        <span class="text-muted">—</span>
+                                    <span class="text-muted">—</span>
                                     {% endif %}
                                 </td>
                             </tr>
@@ -127,57 +130,67 @@
         </div>
     </div>
 </div>
-
+<script type="text/template" id="csv-template">
+Nome,CPF,Inscrito em,Status,Check-in realizado em
+{% for inscricao in inscricoes -%}
+"{{ inscricao.aluno.nome }}","{{ inscricao.aluno.cpf }}","{{ inscricao.inscrito_em.strftime('%d/%m/%Y %H:%M') }}","{{ inscricao.status_presenca }}","{% if inscricao.presenca_confirmada_em %}{{ inscricao.presenca_confirmada_em.strftime('%d/%m/%Y %H:%M') }}{% else %}Não confirmado{% endif %}"
+{% endfor %}
+</script>
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    new QRCode(document.getElementById("qrcode"), {
-        text: "{{ evento.qr_code_link }}",
-        width: 256,
-        height: 256,
-        colorDark: "#000000",
-        colorLight: "#ffffff",
-        correctLevel: QRCode.CorrectLevel.H
+    document.addEventListener('DOMContentLoaded', function () {
+        new QRCode(document.getElementById("qrcode"), {
+            text: "{{ evento.qr_code_link }}",
+            width: 256,
+            height: 256,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H
+        });
     });
-});
 
-function exportarCSV() {
-    const evento = "{{ evento.nome_evento }}";
-    const data = "{{ evento.data_hora.strftime('%Y-%m-%d') }}";
-    
-    let csv = 'Nome,CPF,Inscrito em,Status,Check-in realizado em\n';
-    
-    {% for inscricao in inscricoes %}
-    csv += '"{{ inscricao.aluno.nome }}",';
-    csv += '"{{ inscricao.aluno.cpf }}",';
-    csv += '"{{ inscricao.inscrito_em.strftime('%d/%m/%Y %H:%M') }}",';
-    csv += '"{{ inscricao.status_presenca }}",';
-    csv += '"{% if inscricao.presenca_confirmada_em %}{{ inscricao.presenca_confirmada_em.strftime('%d/%m/%Y %H:%M') }}{% else %}Não confirmado{% endif %}"\n';
-    {% endfor %}
-    
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `participantes_${evento.replace(/\s+/g, '_')}_${data}.csv`;
-    link.click();
-    window.URL.revokeObjectURL(url);
-}
+    function exportarCSV() {
+        const evento = "{{ evento.nome_evento }}";
+        const data = "{{ evento.data_hora.strftime('%Y-%m-%d') }}";
+
+        // Pega o conteúdo prontinho de dentro da nossa tag template
+        // O .trim() remove espaços em branco extras no começo/fim
+        const csv = document.getElementById('csv-template').innerHTML.trim();
+
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+
+        // Garante que o nome do arquivo não tenha caracteres estranhos
+        const nomeArquivo = `participantes_${evento.replace(/[^a-z0-9]/gi, '_')}_${data}.csv`;
+
+        link.download = nomeArquivo;
+        link.click();
+        window.URL.revokeObjectURL(url);
+    }
 </script>
 
 <style>
-@media print {
-    .navbar, .footer, .card-footer, .qr-container, .alert {
-        display: none !important;
+    @media print {
+
+        .navbar,
+        .footer,
+        .card-footer,
+        .qr-container,
+        .alert {
+            display: none !important;
+        }
+
+        .section-surface {
+            box-shadow: none !important;
+            padding: 0 !important;
+        }
+
+        .card {
+            box-shadow: none !important;
+            border: 1px solid #000 !important;
+        }
     }
-    .section-surface {
-        box-shadow: none !important;
-        padding: 0 !important;
-    }
-    .card {
-        box-shadow: none !important;
-        border: 1px solid #000 !important;
-    }
-}
 </style>
 {% endblock %}
