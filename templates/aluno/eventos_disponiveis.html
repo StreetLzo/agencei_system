@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}Eventos Disponíveis | AGENCEI{% endblock %}
+
+{% block content %}
+
+<div class="section-surface">
+
+    <div class="section-header">
+        <h1 class="section-title">Eventos Disponíveis</h1>
+        <p class="section-subtitle">
+            Confira os eventos abertos para inscrição.
+        </p>
+    </div>
+
+    <div class="alert alert-info mb-3">
+        Total de eventos disponíveis: <strong>{{ eventos_data|length }}</strong>
+    </div>
+
+    {% if eventos_data %}
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+
+            {% for item in eventos_data %}
+            <div class="card">
+                <div class="card-body">
+
+                    <!-- Cabeçalho do evento -->
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;">
+                        <div>
+                            <h3 style="margin-bottom: 0.25rem;">
+                                {{ item.evento.nome_evento }}
+                            </h3>
+                            <p class="text-muted" style="font-size: 0.9rem;">
+                                Organizador: {{ item.organizador.nome }}
+                            </p>
+                        </div>
+
+                        {% if item.inscrito %}
+                            <span class="badge badge-success">Inscrito</span>
+                        {% elif not item.tem_vagas %}
+                            <span class="badge badge-danger">Lotado</span>
+                        {% elif not item.pode_inscrever %}
+                            <span class="badge badge-secondary">Encerrado</span>
+                        {% else %}
+                            <span class="badge badge-info">Disponível</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Informações -->
+                    <div class="mt-3" style="font-size: 0.9rem;">
+                        <p>
+                            <strong>Local:</strong> {{ item.sala.nome }} <br>
+                            <strong>Capacidade:</strong> {{ item.capacidade }} pessoas <br>
+                            <strong>Data:</strong> {{ item.evento.data_hora.strftime('%d/%m/%Y às %H:%M') }} <br>
+                            <strong>Duração:</strong> {{ item.evento.duracao_horas }} hora(s)
+                        </p>
+
+                        {% if item.evento.descricao %}
+                        <p class="text-muted mt-2">
+                            {{ item.evento.descricao }}
+                        </p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Rodapé -->
+                    <div class="mt-3"
+                         style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;">
+
+                        <div>
+                            <strong>Inscrições:</strong>
+                            {{ item.num_inscritos }} / {{ item.capacidade }}
+                        </div>
+
+                        <div style="display: flex; gap: 0.5rem;">
+                            <a href="{{ url_for('aluno.detalhes_evento', evento_id=item.evento.id) }}"
+                               class="btn btn-sm btn-outline">
+                                Ver detalhes
+                            </a>
+
+                            {% if item.pode_inscrever %}
+                            <a href="{{ url_for('aluno.confirmar_inscricao', evento_id=item.evento.id) }}"
+                               class="btn btn-sm btn-primary">
+                                Inscrever-se
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            {% endfor %}
+
+        </div>
+    {% else %}
+        <div class="card">
+            <div class="card-body text-center">
+                <p class="text-muted">
+                    Nenhum evento disponível no momento.
+                </p>
+            </div>
+        </div>
+    {% endif %}
+
+</div>
+
+{% endblock %}

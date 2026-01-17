@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+{% block title %}{{ evento.nome_evento }} - Agencei{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="section-surface">
+        <div class="section-header">
+            <div style="display: flex; justify-content: space-between; align-items: start;">
+                <div>
+                    <h2 class="section-title" style="margin-bottom: 0.5rem;">{{ evento.nome_evento }}</h2>
+                    {% if evento.status == 'agendado' %}
+                        <span class="badge badge-success">Agendado</span>
+                    {% elif evento.status == 'andamento' %}
+                        <span class="badge badge-warning">Em Andamento</span>
+                    {% else %}
+                        <span class="badge badge-secondary">Encerrado</span>
+                    {% endif %}
+                </div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <a href="{{ url_for('organizador.minhas_reservas') }}" class="btn btn-outline">Voltar</a>
+                    {% if evento.status == 'agendado' %}
+                    <a href="{{ url_for('organizador.editar_evento', evento_id=evento.id) }}" class="btn btn-warning">Editar</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 2rem; margin-top: 2rem;">
+            <!-- Coluna Esquerda -->
+            <div>
+                <div class="card mb-3">
+                    <div class="card-header">Informações do Evento</div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <strong>Data e Hora:</strong><br>
+                            <span class="text-muted">{{ evento.data_hora.strftime('%d/%m/%Y às %H:%M') if evento.data_hora else 'Data não definida' }}</span>
+                        </div>
+                        <div class="mb-3">
+                            <strong>Sala:</strong><br>
+                            {% if evento.sala %}
+                                <a href="{{ url_for('organizador.detalhes_sala', sala_id=evento.sala.id) }}">{{ evento.sala.nome }}</a>
+                                <br><small class="text-muted">Capacidade: {{ evento.sala.capacidade }} pessoas</small>
+                            {% else %}
+                                <span class="text-danger">Sala não atribuída</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-3">
+                    <div class="card-header">Inscrições</div>
+                    <div class="card-body">
+                        {% set total_inscritos = evento.inscricoes|length %}
+                        {% set capacidade = evento.sala.capacidade if (evento.sala and evento.sala.capacidade > 0) else 1 %}
+                        {% set percentual = (total_inscritos / capacidade * 100)|int %}
+                        
+                        <div class="progress mb-2" style="height: 25px;">
+                            <div class="progress-bar {% if percentual >= 90 %}bg-danger{% elif percentual >= 70 %}bg-warning{% else %}bg-success{% endif %}" 
+                                 id="barra-progresso-evento" role="progressbar" 
+                                 aria-valuenow="{{ percentual }}" aria-valuemin="0" aria-valuemax="100">
+                                {{ total_inscritos }} / {{ capacidade }}
+                            </div>
+                        </div>
+                        <small class="text-muted d-block text-center">{{ percentual }}% ocupado</small>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">Divulgação</div>
+                    <div class="card-body text-center">
+                        <div id="qrcode" class="d-flex justify-content-center mb-3"></div>
+                        <button class="btn btn-primary btn-sm w-100" onclick="copiarLink()">Copiar Link de Inscrição</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Coluna Direita -->
+            <div>
+                <div class="card">
+                    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                        <h5 class="mb-0">Participantes</h5>
+                        <span class="badge badge-info">{{ evento.inscricoes|length }}</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <input type="text" class="form-control" id="busca-participante" 
+                                   placeholder="Buscar por nome ou CPF..." onkeyup="buscarParticipante()">
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="tabela-participantes">
+                                <thead>
+                                    <tr>
+                                        <th>Nome</th>
+                                        <th>CPF</th>
+                                        <th>Status</th>
+                                        <th>Check-in</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for inscricao in evento.inscricoes %}
+                                    <tr class="participante-row">
+                                        <td class="participante-nome"><strong>{{ inscricao.aluno.nome }}</strong></td>
+                                        <td class="participante-cpf text-muted">{{ inscricao.aluno.cpf }}</td>
+                                        <td>
+                                            {% if inscricao.status_presenca == 'Presente' %}
+                                                <span class="badge badge-success">Presente</span>
+                                            {% else %}
+                                                <span class="badge badge-warning">Aguardando</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ inscricao.hora_checkin.strftime('%H:%M') if inscricao.hora_checkin else '--:--' }}</td>
+                                    </tr>
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="4" class="text-center py-4 text-muted">Nenhum participante inscrito.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const barra = document.getElementById('barra-progresso-evento');
+        if (barra) {
+            const valor = barra.getAttribute('aria-valuenow');
+            barra.style.width = valor + '%';
+        }
+    });
+
+    const linkInscricao = "{{ url_for('aluno.inscrever_evento', evento_id=evento.id, _external=True) }}";
+
+    new QRCode(document.getElementById("qrcode"), {
+        text: linkInscricao,
+        width: 160,
+        height: 160
+    });
+
+    function copiarLink() {
+        navigator.clipboard.writeText(linkInscricao).then(() => {
+            alert('Link copiado com sucesso!');
+        });
+    }
+
+    function buscarParticipante() {
+        let input = document.getElementById('busca-participante').value.toLowerCase();
+        let rows = document.querySelectorAll('.participante-row');
+        rows.forEach(row => {
+            let text = row.innerText.toLowerCase();
+            row.style.display = text.includes(input) ? '' : 'none';
+        });
+    }
+</script>
+{% endblock %}

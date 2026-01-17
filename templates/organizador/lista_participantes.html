@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+{% block title %}Participantes - {{ evento.nome_evento }} | AGENCEI{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 1200px;">
+    <div class="section-surface">
+        <div class="section-header">
+            <h2 class="section-title">Lista de Participantes</h2>
+            <p class="section-subtitle">
+                <strong>{{ evento.nome_evento }}</strong><br>
+                {{ evento.data_hora.strftime('%d/%m/%Y às %H:%M') }} • {{ evento.sala.nome }}
+            </p>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3 class="mb-0">QR Code para Confirmação de Presença</h3>
+            </div>
+            <div class="card-body text-center">
+                <p class="mb-4">Os participantes devem escanear este código durante o evento</p>
+                
+                <div class="qr-container">
+                    <div id="qrcode"></div>
+                    <div style="margin-top: 1rem; font-family: monospace; font-size: 0.875rem; font-weight: 600; color: var(--gray-700); padding: 0.5rem 1rem; background: var(--gray-100); border-radius: var(--radius-md); display: inline-block;">
+                        {{ evento.qr_code_link }}
+                    </div>
+                </div>
+
+                <div class="alert alert-info mt-4 mb-0">
+                    <strong>Janela de confirmação:</strong><br>
+                    30 minutos antes do início até 30 minutos após o término do evento
+                </div>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+            {% set total_inscritos = inscricoes|length %}
+            {% set total_presentes = inscricoes|selectattr('status_presenca', 'equalto', 'Presente')|list|length %}
+            {% set total_aguardando = inscricoes|selectattr('status_presenca', 'equalto', 'Aguardando')|list|length %}
+            
+            <div class="card text-center">
+                <div class="card-body">
+                    <h2 class="mb-1">{{ total_inscritos }}</h2>
+                    <small class="text-muted">Total Inscritos</small>
+                </div>
+            </div>
+            
+            <div class="card text-center" style="border-left: 4px solid var(--success);">
+                <div class="card-body">
+                    <h2 class="text-success mb-1">{{ total_presentes }}</h2>
+                    <small class="text-muted">Confirmaram Presença</small>
+                </div>
+            </div>
+            
+            <div class="card text-center" style="border-left: 4px solid var(--warning);">
+                <div class="card-body">
+                    <h2 class="text-warning mb-1">{{ total_aguardando }}</h2>
+                    <small class="text-muted">Aguardando</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h3 class="mb-0">Lista Completa de Participantes</h3>
+            </div>
+            
+            {% if inscricoes %}
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-striped mb-0">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Nome</th>
+                                <th>CPF</th>
+                                <th>Inscrito em</th>
+                                <th>Status</th>
+                                <th>Check-in</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for inscricao in inscricoes %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td><strong>{{ inscricao.aluno.nome }}</strong></td>
+                                <td>{{ inscricao.aluno.cpf[:3] }}.{{ inscricao.aluno.cpf[3:6] }}.{{ inscricao.aluno.cpf[6:9] }}-{{ inscricao.aluno.cpf[9:] }}</td>
+                                <td>{{ inscricao.inscrito_em.strftime('%d/%m/%Y %H:%M') }}</td>
+                                <td>
+                                    {% if inscricao.esta_presente %}
+                                        <span class="badge badge-success">Presente</span>
+                                    {% elif inscricao.status_presenca == 'Ausente' %}
+                                        <span class="badge badge-danger">Ausente</span>
+                                    {% else %}
+                                        <span class="badge badge-warning">Aguardando</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if inscricao.presenca_confirmada_em %}
+                                        {{ inscricao.presenca_confirmada_em.strftime('%d/%m/%Y %H:%M') }}
+                                    {% else %}
+                                        <span class="text-muted">—</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card-footer">
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <button onclick="exportarCSV()" class="btn btn-primary">Exportar CSV</button>
+                    <button onclick="window.print()" class="btn btn-outline">Imprimir Lista</button>
+                    <a href="{{ url_for('organizador.minhas_reservas') }}" class="btn btn-outline">Voltar</a>
+                </div>
+            </div>
+
+            {% else %}
+            <div class="card-body">
+                <div class="text-center py-5">
+                    <p class="text-muted">Nenhum participante inscrito ainda</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    new QRCode(document.getElementById("qrcode"), {
+        text: "{{ evento.qr_code_link }}",
+        width: 256,
+        height: 256,
+        colorDark: "#000000",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.H
+    });
+});
+
+function exportarCSV() {
+    const evento = "{{ evento.nome_evento }}";
+    const data = "{{ evento.data_hora.strftime('%Y-%m-%d') }}";
+    
+    let csv = 'Nome,CPF,Inscrito em,Status,Check-in realizado em\n';
+    
+    {% for inscricao in inscricoes %}
+    csv += '"{{ inscricao.aluno.nome }}",';
+    csv += '"{{ inscricao.aluno.cpf }}",';
+    csv += '"{{ inscricao.inscrito_em.strftime('%d/%m/%Y %H:%M') }}",';
+    csv += '"{{ inscricao.status_presenca }}",';
+    csv += '"{% if inscricao.presenca_confirmada_em %}{{ inscricao.presenca_confirmada_em.strftime('%d/%m/%Y %H:%M') }}{% else %}Não confirmado{% endif %}"\n';
+    {% endfor %}
+    
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `participantes_${evento.replace(/\s+/g, '_')}_${data}.csv`;
+    link.click();
+    window.URL.revokeObjectURL(url);
+}
+</script>
+
+<style>
+@media print {
+    .navbar, .footer, .card-footer, .qr-container, .alert {
+        display: none !important;
+    }
+    .section-surface {
+        box-shadow: none !important;
+        padding: 0 !important;
+    }
+    .card {
+        box-shadow: none !important;
+        border: 1px solid #000 !important;
+    }
+}
+</style>
+{% endblock %}

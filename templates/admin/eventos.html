@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+{% block title %}Gerenciar Eventos - Agencei{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2>Todos os Eventos</h2>
+                <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">
+                    Voltar
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-4">
+                    <input type="text" name="busca" class="form-control" placeholder="Buscar por nome..." value="{{ request.args.get('busca', '') }}">
+                </div>
+                <div class="col-md-3">
+                    <select name="status" class="form-select">
+                        <option value="">Todos os status</option>
+                        <option value="agendado" {% if request.args.get('status') == 'agendado' %}selected{% endif %}>Agendados</option>
+                        <option value="andamento" {% if request.args.get('status') == 'andamento' %}selected{% endif %}>Em andamento</option>
+                        <option value="encerrado" {% if request.args.get('status') == 'encerrado' %}selected{% endif %}>Encerrados</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select name="organizador" class="form-select">
+                        <option value="">Todos organizadores</option>
+                        {% for org in organizadores %}
+                        <option value="{{ org.id }}" {% if request.args.get('organizador') == org.id|string %}selected{% endif %}>
+                            {{ org.nome }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        Filtrar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <h5 class="card-title">Total de Eventos</h5>
+                    <h2>{{ eventos|length }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <h5 class="card-title">Agendados</h5>
+                    <h2>{{ eventos|selectattr('status', 'equalto', 'agendado')|list|length }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning">
+                <div class="card-body">
+                    <h5 class="card-title">Em Andamento</h5>
+                    <h2>{{ eventos|selectattr('status', 'equalto', 'andamento')|list|length }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-secondary">
+                <div class="card-body">
+                    <h5 class="card-title">Encerrados</h5>
+                    <h2>{{ eventos|selectattr('status', 'equalto', 'encerrado')|list|length }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Lista de Eventos</h5>
+        </div>
+        <div class="card-body p-0">
+            {% if eventos %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Nome do Evento</th>
+                            <th>Data/Hora</th>
+                            <th>Sala</th>
+                            <th>Organizador</th>
+                            <th>Inscritos</th>
+                            <th>Status</th>
+                            <th class="text-center">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for evento in eventos %}
+                        <tr>
+                            <td>{{ evento.id }}</td>
+                            <td><strong>{{ evento.nome_evento }}</strong></td>
+                            <td>{{ evento.data_hora.strftime('%d/%m/%Y %H:%M') }}</td>
+                            <td>{{ evento.sala.nome }}</td>
+                            <td>{{ evento.organizador.nome }}</td>
+                            <td>
+                                <span class="badge bg-info">
+                                    {{ evento.inscricoes|length }} / {{ evento.sala.capacidade }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if evento.status == 'agendado' %}
+                                    <span class="badge bg-success">Agendado</span>
+                                {% elif evento.status == 'andamento' %}
+                                    <span class="badge bg-warning text-dark">Em andamento</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Encerrado</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="{{ url_for('admin.detalhes_evento', evento_id=evento.id) }}" 
+                                       class="btn btn-info" title="Detalhes">
+                                        Detalhes
+                                    </a>
+                                    <a href="{{ url_for('admin.cancelar_evento', evento_id=evento.id) }}" 
+                                       class="btn btn-danger" 
+                                       onclick="return confirm('Deseja realmente cancelar este evento?')"
+                                       title="Cancelar">
+                                        Cancelar
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <p class="text-muted">Nenhum evento encontrado.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

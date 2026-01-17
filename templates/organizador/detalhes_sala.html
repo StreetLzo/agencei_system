@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Detalhes da Sala - {{ sala.nome }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="section-surface">
+        <div class="section-header">
+            <div style="display: flex; justify-content: space-between; align-items: start;">
+                <div>
+                    <h2 class="section-title" style="margin-bottom: 0.5rem;">Sala: {{ sala.nome }}</h2>
+                    <p class="section-subtitle">{{ sala.localizacao or 'Localização não informada' }}</p>
+                </div>
+                <a href="{{ url_for('organizador.reservar_sala', sala_id=sala.id) }}" class="btn btn-primary">Reservar Sala</a>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 2rem; margin-top: 2rem;">
+            <div>
+                <div class="card">
+                    <div class="card-header">Informações</div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="text-muted d-block small fw-bold">CAPACIDADE</label>
+                            <span class="fs-4 fw-bold text-primary">{{ sala.capacidade }} Pessoas</span>
+                        </div>
+                        <div class="mb-3">
+                            <label class="text-muted d-block small fw-bold">DESCRIÇÃO</label>
+                            <p>{{ sala.descricao or 'Nenhuma descrição disponível para esta sala.' }}</p>
+                        </div>
+                        <div class="mb-0">
+                            <label class="text-muted d-block small fw-bold">STATUS</label>
+                            {% if sala.ativa %}
+                                <span class="badge badge-success">Ativa / Disponível</span>
+                            {% else %}
+                                <span class="badge badge-danger">Inativa / Manutenção</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="card">
+                    <div class="card-header">Cronograma da Sala</div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Evento</th>
+                                        <th>Data e Hora</th>
+                                        <th>Duração</th>
+                                        <th class="text-end">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for evento in eventos_sala %}
+                                    <tr>
+                                        <td><strong>{{ evento.nome_evento }}</strong></td>
+                                        <td>{{ evento.data_hora.strftime('%d/%m/%Y %H:%M') }}</td>
+                                        <td>{{ evento.duracao_horas }}h</td>
+                                        <td class="text-end">
+                                            <a href="{{ url_for('organizador.detalhes_evento', evento_id=evento.id) }}" class="btn btn-sm btn-outline">Ver Detalhes</a>
+                                        </td>
+                                    </tr>
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="4" class="text-center py-4 text-muted">Não há eventos agendados para esta sala nos próximos dias.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

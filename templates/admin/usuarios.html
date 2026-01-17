@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}Gerenciar Usuários - Admin{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>👥 Gerenciar Usuários</h1>
+    <p>Visualizar e gerenciar todos os usuários do sistema</p>
+</div>
+
+<!-- Filtros e Busca -->
+<div class="filters-bar">
+    <form method="GET" class="filters-form">
+        <div class="filter-group">
+            <label>Tipo:</label>
+            <select name="tipo" class="form-control" onchange="this.form.submit()">
+                <option value="todos" {% if tipo_filtro == 'todos' %}selected{% endif %}>Todos</option>
+                <option value="aluno" {% if tipo_filtro == 'aluno' %}selected{% endif %}>Alunos</option>
+                <option value="organizador" {% if tipo_filtro == 'organizador' %}selected{% endif %}>Organizadores</option>
+                <option value="admin" {% if tipo_filtro == 'admin' %}selected{% endif %}>Administradores</option>
+            </select>
+        </div>
+
+        <div class="filter-group flex-grow">
+            <label>Buscar:</label>
+            <input 
+                type="text" 
+                name="busca" 
+                class="form-control" 
+                placeholder="Nome ou CPF..."
+                value="{{ busca }}"
+            >
+        </div>
+
+        <button type="submit" class="btn btn-primary">🔍 Buscar</button>
+    </form>
+</div>
+
+<!-- Contadores -->
+<div class="info-bar">
+    <p>📊 Total de usuários encontrados: <strong>{{ usuarios|length }}</strong></p>
+</div>
+
+<!-- Tabela de Usuários -->
+<div class="table-responsive">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>CPF</th>
+                <th>Tipo</th>
+                <th>Status</th>
+                <th>Cadastrado em</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if usuarios %}
+                {% for usuario in usuarios %}
+                <tr class="{% if not usuario.ativo %}row-inactive{% endif %}">
+                    <td><strong>{{ usuario.nome }}</strong></td>
+                    <td>{{ usuario.cpf[:3] }}.{{ usuario.cpf[3:6] }}.{{ usuario.cpf[6:9] }}-{{ usuario.cpf[9:] }}</td>
+                    <td>
+                        <span class="badge badge-{{ usuario.tipo }}">
+                            {{ usuario.tipo|title }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if usuario.ativo %}
+                            <span class="badge badge-success">Ativo</span>
+                        {% else %}
+                            <span class="badge badge-danger">Inativo</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ usuario.criado_em.strftime('%d/%m/%Y') }}</td>
+                    <td>
+                        <form method="POST" action="{{ url_for('admin.alternar_status_usuario', user_id=usuario.id) }}" style="display: inline;">
+                            <button 
+                                type="submit" 
+                                class="btn btn-sm {% if usuario.ativo %}btn-warning{% else %}btn-success{% endif %}"
+                                {% if usuario.id == current_user.id %}disabled title="Você não pode desativar sua própria conta"{% endif %}
+                            >
+                                {% if usuario.ativo %}🔒 Desativar{% else %}🔓 Ativar{% endif %}
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="6" class="text-center">
+                        <p class="empty-state">Nenhum usuário encontrado</p>
+                    </td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

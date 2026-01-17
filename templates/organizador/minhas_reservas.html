@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Meus Eventos - Organizador{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="section-surface">
+        <div class="section-header">
+            <h1 class="section-title">Meus Eventos</h1>
+            <p class="section-subtitle">Gerenciar eventos criados por você</p>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="GET" style="display: flex; gap: 1rem; align-items: center;">
+                    <label style="font-weight: 600;">Filtrar:</label>
+                    <select name="filtro" class="form-control" style="max-width: 200px;" onchange="this.form.submit()">
+                        <option value="todos" {% if filtro == 'todos' %}selected{% endif %}>Todos</option>
+                        <option value="futuros" {% if filtro == 'futuros' %}selected{% endif %}>Futuros</option>
+                        <option value="ativos" {% if filtro == 'ativos' %}selected{% endif %}>Acontecendo Agora</option>
+                        <option value="passados" {% if filtro == 'passados' %}selected{% endif %}>Passados</option>
+                    </select>
+                    <span class="text-muted" style="margin-left: auto;">Total de eventos: <strong>{{ eventos_data|length }}</strong></span>
+                </form>
+            </div>
+        </div>
+
+        {% if eventos_data %}
+            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                {% for item in eventos_data %}
+                <div class="card {% if item.ja_terminou %}opacity-75{% endif %}">
+                    <div class="card-header" style="display: flex; justify-content: space-between; align-items: start;">
+                        <div>
+                            <h3 class="mb-2">{{ item.evento.nome_evento }}</h3>
+                            <p class="text-muted mb-0" style="font-size: 0.9rem;">
+                                {{ item.sala.nome }} • 
+                                {{ item.evento.data_hora.strftime('%d/%m/%Y às %H:%M') }} • 
+                                {{ item.evento.duracao_horas }}h
+                            </p>
+                        </div>
+                        <div>
+                            {% if item.esta_ativo %}
+                                <span class="badge badge-success" style="font-size: 0.9rem; padding: 0.5rem 1rem;">AO VIVO</span>
+                            {% elif item.ja_terminou %}
+                                <span class="badge badge-secondary" style="font-size: 0.9rem; padding: 0.5rem 1rem;">Finalizado</span>
+                            {% else %}
+                                <span class="badge badge-info" style="font-size: 0.9rem; padding: 0.5rem 1rem;">Agendado</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="card-body">
+                        {% if item.evento.descricao %}
+                        <p class="text-muted mb-3">{{ item.evento.descricao }}</p>
+                        {% endif %}
+
+                        <div style="display: flex; gap: 2rem; margin-bottom: 1.5rem;">
+                            <div>
+                                <span class="text-muted d-block" style="font-size: 0.8rem;">Inscritos:</span>
+                                <span class="fw-bold">{{ item.num_inscritos }}</span>
+                            </div>
+                            <div>
+                                <span class="text-muted d-block" style="font-size: 0.8rem;">Presentes:</span>
+                                <span class="fw-bold">{{ item.num_presentes }}</span>
+                            </div>
+                            <div>
+                                <span class="text-muted d-block" style="font-size: 0.8rem;">Capacidade:</span>
+                                <span class="fw-bold">{{ item.sala.capacidade }}</span>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                            <a href="{{ url_for('organizador.detalhes_evento', evento_id=item.evento.id) }}" class="btn btn-sm btn-outline">Detalhes</a>
+                            <a href="{{ url_for('organizador.lista_participantes', evento_id=item.evento.id) }}" class="btn btn-sm btn-outline">Participantes</a>
+                            
+                            {% if not item.ja_terminou %}
+                            <a href="{{ url_for('organizador.gerar_link_inscricao', evento_id=item.evento.id) }}" class="btn btn-sm btn-primary">Link Inscrição</a>
+                            <a href="{{ url_for('organizador.editar_evento', evento_id=item.evento.id) }}" class="btn btn-sm btn-outline">Editar</a>
+                            {% endif %}
+
+                            {% if item.pode_excluir %}
+                            <form method="POST" action="{{ url_for('organizador.excluir_evento', evento_id=item.evento.id) }}" style="display: inline;" onsubmit="return confirm('Tem certeza que deseja excluir este evento?')">
+                                <button type="submit" class="btn btn-sm btn-danger">Excluir</button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <p class="text-muted mb-3">Nenhum evento encontrado</p>
+                    <a href="{{ url_for('organizador.salas') }}" class="btn btn-primary">Criar Primeiro Evento</a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

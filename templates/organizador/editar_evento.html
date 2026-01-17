@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block title %}Editar Evento - Agencei{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 800px;">
+    <div class="section-surface">
+        <div class="section-header">
+            <h2 class="section-title">Editar Evento</h2>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">
+            {{ message }}
+            <button class="alert-close" onclick="this.parentElement.remove()">×</button>
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('organizador.editar_evento', evento_id=evento.id) }}">
+
+            <!-- Nome -->
+            <div class="form-group">
+                <label>Nome do Evento</label>
+                <input
+                    type="text"
+                    name="nome_evento"
+                    class="form-control"
+                    value="{{ evento.nome_evento }}"
+                    required
+                >
+            </div>
+
+            <!-- Data e Hora separadas (compatível com backend) -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Data</label>
+                    <input
+                        type="date"
+                        name="data"
+                        class="form-control"
+                        value="{{ evento.data_hora.strftime('%Y-%m-%d') }}"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label>Hora</label>
+                    <input
+                        type="time"
+                        name="hora"
+                        class="form-control"
+                        value="{{ evento.data_hora.strftime('%H:%M') }}"
+                        required
+                    >
+                </div>
+            </div>
+
+            <!-- Duração -->
+            <div class="form-group">
+                <label>Duração (horas)</label>
+                <input
+                    type="number"
+                    step="0.5"
+                    min="0.5"
+                    max="12"
+                    name="duracao"
+                    class="form-control"
+                    value="{{ evento.duracao_horas }}"
+                    required
+                >
+            </div>
+
+            <!-- Sala -->
+            <div class="form-group">
+                <label>Sala</label>
+                <select name="sala_id" class="form-control" disabled>
+                    {% for sala in salas %}
+                    <option value="{{ sala.id }}" {% if sala.id == evento.sala_id %}selected{% endif %}>
+                        {{ sala.nome }} ({{ sala.capacidade }} pessoas)
+                    </option>
+                    {% endfor %}
+                </select>
+                <small class="text-muted">
+                    A sala não pode ser alterada após a criação do evento.
+                </small>
+            </div>
+
+            <!-- Botões -->
+            <div class="d-flex justify-content-between mt-4">
+                <a
+                    href="{{ url_for('organizador.detalhes_evento', evento_id=evento.id) }}"
+                    class="btn btn-outline"
+                >
+                    Cancelar
+                </a>
+                <button type="submit" class="btn btn-warning">
+                    Salvar Alterações
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Zona de perigo -->
+    <div class="card mt-3 border-danger">
+        <div class="card-header bg-danger text-white">
+            <h5 class="mb-0">Zona de Perigo</h5>
+        </div>
+        <div class="card-body">
+            <p>
+                <strong>Cancelar este evento:</strong>
+                Esta ação não pode ser desfeita. Todos os participantes inscritos serão notificados.
+            </p>
+
+            <form
+                method="POST"
+                action="{{ url_for('organizador.cancelar_evento', evento_id=evento.id) }}"
+                onsubmit="return confirm('Tem certeza que deseja CANCELAR este evento? Esta ação não pode ser desfeita!');"
+            >
+                <button type="submit" class="btn btn-danger">
+                    Cancelar Evento
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

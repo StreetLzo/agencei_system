@@ -10,7 +10,7 @@ from models.sala import Sala
 from models.evento import Evento
 from models.inscricao import Inscricao
 from models.pre_authorized_user import PreAuthorizedUser
-from utils.decorators import role_required, login_required_custom, anonymous_required
+from utils.decorators import role_required
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -94,7 +94,6 @@ def usuarios():
 
 @admin_bp.route('/usuarios/<int:user_id>/alternar-status', methods=['POST'])
 @role_required('admin')
-
 def alternar_status_usuario(user_id):
     """
     Ativar/desativar usuário
@@ -120,103 +119,76 @@ def alternar_status_usuario(user_id):
     return redirect(url_for('admin.usuarios'))
 
 
-@admin_bp.route('/cpfs-autorizados')
+@admin_bp.route('/cpfs_autorizados')
 @role_required('admin')
-
 def cpfs_autorizados():
-    """
-    Gerenciar CPFs pré-autorizados
-    """
-    # Filtros
     status_filtro = request.args.get('status', 'todos')
-    
     query = PreAuthorizedUser.query
-    
+
     if status_filtro == 'disponiveis':
         query = query.filter_by(usado=False, ativo=True)
     elif status_filtro == 'usados':
         query = query.filter_by(usado=True)
     elif status_filtro == 'inativos':
         query = query.filter_by(ativo=False)
-    
+
     cpfs = query.order_by(PreAuthorizedUser.criado_em.desc()).all()
-    
+
+    # Mudamos o nome do template e da variável enviada (autorizados)
     return render_template(
         'admin/cpfs_autorizados.html',
-        cpfs=cpfs,
+        autorizados=cpfs,
         status_filtro=status_filtro
     )
 
-
-@admin_bp.route('/cpfs-autorizados/adicionar', methods=['GET', 'POST'])
+@admin_bp.route('/cpfs_autorizados/adicionar', methods=['POST'])
 @role_required('admin')
-
 def adicionar_cpf_autorizado():
-    """
-    Adicionar novo CPF autorizado
-    """
-    if request.method == 'POST':
-        cpf = request.form.get('cpf', '').strip()
-        role = request.form.get('role', 'organizador')
-        
-        # Limpar CPF
-        cpf = ''.join(filter(str.isdigit, cpf))
-        
-        # Criar autorização
-        pre_auth, mensagem = PreAuthorizedUser.criar_autorizacao(
-            cpf=cpf,
-            role=role,
-            criado_por_id=current_user.id
-        )
-        
-        if pre_auth:
-            flash(f'✅ {mensagem}', 'success')
-            return redirect(url_for('admin.cpfs_autorizados'))
-        else:
-            flash(f'❌ {mensagem}', 'error')
-    
-    return render_template('admin/adicionar_cpf.html')
+    cpf = request.form.get('cpf', '').strip()
+    # No seu HTML o campo chama 'nome', mas seu modelo parece usar apenas CPF e Role. 
+    # Se o seu modelo PreAuthorizedUser tiver o campo 'nome', adicione-o aqui.
+    role = request.form.get('role', 'organizador')
 
+    cpf = ''.join(filter(str.isdigit, cpf))
 
-@admin_bp.route('/cpfs-autorizados/<int:cpf_id>/desativar', methods=['POST'])
+    pre_auth, mensagem = PreAuthorizedUser.criar_autorizacao(
+        cpf=cpf,
+        role=role,
+        criado_por_id=current_user.id
+    )
+
+    if pre_auth:
+        flash(f'✅ {mensagem}', 'success')
+    else:
+        flash(f'❌ {mensagem}', 'error')
+
+    return redirect(url_for('admin.cpfs_autorizados'))
+
+@admin_bp.route('/cpfs_autorizados/<int:cpf_id>/desativar', methods=['POST'])
 @role_required('admin')
-
 def desativar_cpf_autorizado(cpf_id):
-    """
-    Desativar CPF autorizado
-    """
     pre_auth = PreAuthorizedUser.query.get_or_404(cpf_id)
-    
     try:
         pre_auth.desativar()
         flash('✅ CPF desativado com sucesso.', 'success')
     except Exception as e:
         flash(f'❌ Erro ao desativar: {str(e)}', 'error')
-    
     return redirect(url_for('admin.cpfs_autorizados'))
 
-
-@admin_bp.route('/cpfs-autorizados/<int:cpf_id>/reativar', methods=['POST'])
+@admin_bp.route('/cpfs_autorizados/<int:cpf_id>/reativar', methods=['POST'])
 @role_required('admin')
-
 def reativar_cpf_autorizado(cpf_id):
-    """
-    Reativar CPF autorizado
-    """
     pre_auth = PreAuthorizedUser.query.get_or_404(cpf_id)
-    
     try:
         pre_auth.reativar()
         flash('✅ CPF reativado com sucesso.', 'success')
     except Exception as e:
         flash(f'❌ Erro ao reativar: {str(e)}', 'error')
-    
     return redirect(url_for('admin.cpfs_autorizados'))
 
 
 @admin_bp.route('/salas')
 @role_required('admin')
-
 def salas():
     """
     Gerenciar salas
@@ -227,7 +199,6 @@ def salas():
 
 @admin_bp.route('/salas/adicionar', methods=['GET', 'POST'])
 @role_required('admin')
-
 def adicionar_sala():
     """
     Adicionar nova sala

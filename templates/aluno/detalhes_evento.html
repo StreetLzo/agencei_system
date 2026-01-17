@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% block title %}{{ evento.nome_evento }} | AGENCEI{% endblock %}
+
+{% block content %}
+
+<div class="container" style="max-width: 900px;">
+    <div class="section-surface">
+        <div class="card mb-4">
+            <div class="card-header">
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+                    <div>
+                        <h2 class="mb-2">{{ evento.nome_evento }}</h2>
+                        <p class="mb-0 text-muted">Organizado por: {{ evento.organizador.nome }}</p>
+                    </div>
+
+
+                    {% if evento.esta_ativo() %}
+                    <span class="badge badge-success">Em andamento</span>
+                    {% elif evento.ja_terminou() %}
+                    <span class="badge badge-secondary">Encerrado</span>
+                    {% else %}
+                    <span class="badge badge-warning">Agendado</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card-body">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+                    <div>
+                        <h5 class="mb-3" style="font-weight: 700;">Data e horário</h5>
+                        <div style="display: flex; flex-direction: column; gap: 1rem;">
+                            <div><strong>Data:</strong><br><span class="text-muted">{{
+                                    evento.data_hora.strftime('%d/%m/%Y') }}</span></div>
+                            <div><strong>Horário:</strong><br><span class="text-muted">{{
+                                    evento.data_hora.strftime('%H:%M') }}</span></div>
+                            <div><strong>Duração:</strong><br><span class="text-muted">{{ evento.duracao_horas }}
+                                    hora(s)</span></div>
+                            <div><strong>Término:</strong><br><span class="text-muted">{{
+                                    evento.data_hora_fim.strftime('%H:%M') }}</span></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h5 class="mb-3" style="font-weight: 700;">Local</h5>
+                        <div style="display: flex; flex-direction: column; gap: 1rem;">
+                            <div><strong>Sala:</strong><br><span class="text-muted">{{ evento.sala.nome }}</span></div>
+                            <div><strong>Capacidade:</strong><br><span class="text-muted">{{ evento.sala.capacidade }}
+                                    pessoas</span></div>
+                            {% if evento.descricao %}
+                            <div><strong>Descrição:</strong><br><span class="text-muted">{{ evento.descricao }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <hr>
+
+                <!-- BARRA DE VAGAS (CORRIGIDA) -->
+                <div class="mb-4">
+                    <h5 class="mb-3" style="font-weight: 700;">Disponibilidade de vagas</h5>
+
+                    <div class="progress progress-container mb-3">
+                        <div class="progress-bar" data-percent="{{ percentual }}">
+
+                            {{ total_inscritos }} / {{ capacidade }} inscritos
+                        </div>
+                    </div>
+
+                    <div class="text-center">
+                        {% if vagas_disponiveis > 0 %}
+                        <span class="badge badge-success" style="font-size: 1rem; padding: 0.5rem 1.5rem;">
+                            {{ vagas_disponiveis }} vaga(s) disponível(is)
+                        </span>
+                        {% else %}
+                        <span class="badge badge-danger" style="font-size: 1rem; padding: 0.5rem 1.5rem;">
+                            Evento com capacidade esgotada
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <hr>
+
+                {% if inscricao %}
+                <div class="alert
+                    {% if inscricao.esta_presente %}alert-success
+                    {% elif inscricao.status_presenca == 'Ausente' %}alert-danger
+                    {% else %}alert-warning{% endif %} mb-4">
+
+                    <h5 class="mb-2" style="font-weight: 700;">Inscrição confirmada</h5>
+
+                    <p class="mb-2">
+                        <strong>Status de presença:</strong>
+                        {% if inscricao.esta_presente %}
+                        <span class="badge badge-success">Presente</span>
+                        {% elif inscricao.status_presenca == 'Ausente' %}
+                        <span class="badge badge-danger">Ausente</span>
+                        {% else %}
+                        <span class="badge badge-warning">Aguardando check-in</span>
+                        {% endif %}
+                    </p>
+
+                    <p class="mb-0"><strong>Inscrito em:</strong> {{ inscricao.inscrito_em.strftime('%d/%m/%Y às %H:%M')
+                        }}</p>
+
+                    {% if inscricao.presenca_confirmada_em %}
+                    <p class="mb-0 mt-2"><strong>Check-in realizado em:</strong> {{
+                        inscricao.presenca_confirmada_em.strftime('%d/%m/%Y às %H:%M') }}</p>
+                    {% endif %}
+                </div>
+
+                {% if not evento.ja_terminou() and not inscricao.esta_presente %}
+                <form method="POST" action="{{ url_for('aluno.cancelar_inscricao', evento_id=evento.id) }}"
+                    onsubmit="return confirm('Tem certeza que deseja cancelar sua inscrição?')">
+                    <button type="submit" class="btn btn-danger w-100">Cancelar inscrição</button>
+                </form>
+                {% endif %}
+
+                {% else %}
+                {% if vagas_disponiveis > 0 and not evento.ja_terminou() %}
+                <form method="POST" action="{{ url_for('aluno.inscrever_evento', evento_id=evento.id) }}">
+                    <button type="submit" class="btn btn-primary w-100 btn-lg">Inscrever-se no evento</button>
+                </form>
+                {% else %}
+                <div class="alert alert-info text-center">
+                    {{ 'Este evento já foi encerrado.' if evento.ja_terminou() else 'Não há vagas disponíveis no
+                    momento.' }}
+                </div>
+                {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

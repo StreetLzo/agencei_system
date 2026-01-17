@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Salas Disponíveis - Organizador{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="section-surface">
+        <div class="section-header">
+            <h1 class="section-title">Salas Disponíveis</h1>
+            <p class="section-subtitle">Escolha uma sala para criar seu evento</p>
+        </div>
+
+        {% if salas %}
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;">
+                {% for sala in salas %}
+                <div class="card">
+                    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3 class="mb-0">{{ sala.nome }}</h3>
+                        <span class="badge badge-success">Disponível</span>
+                    </div>
+                    
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <span style="font-size: 0.9rem; color: var(--gray-600);">Capacidade:</span>
+                            <span style="font-weight: 600; font-size: 1.1rem; color: var(--primary);">{{ sala.capacidade }}</span>
+                            <span style="font-size: 0.9rem; color: var(--gray-600);">pessoas</span>
+                        </div>
+                        
+                        {% if sala.descricao %}
+                        <p class="text-muted" style="font-size: 0.9rem;">{{ sala.descricao }}</p>
+                        {% endif %}
+                        
+                        <div class="text-muted" style="font-size: 0.85rem; margin-top: 1rem;">
+                            Eventos agendados: <strong>{{ sala.eventos|length }}</strong>
+                        </div>
+                    </div>
+                    
+                    <div class="card-footer" style="display: flex; gap: 0.5rem;">
+                        <a href="{{ url_for('organizador.detalhes_sala', sala_id=sala.id) }}" class="btn btn-sm btn-outline">Ver Detalhes</a>
+                        <a href="{{ url_for('organizador.reservar_sala', sala_id=sala.id) }}" class="btn btn-sm btn-primary">Reservar</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <p class="text-muted">Nenhuma sala disponível no momento</p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Adicionar Sala - Admin{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>🏢 Adicionar Nova Sala</h1>
+    <p>Cadastrar um novo espaço para eventos</p>
+</div>
+
+<div class="form-container">
+    <form method="POST" action="{{ url_for('admin.adicionar_sala') }}" class="form-card">
+        <div class="form-group">
+            <label for="nome">Nome da Sala *</label>
+            <input 
+                type="text" 
+                id="nome" 
+                name="nome" 
+                class="form-control" 
+                placeholder="Ex: Auditório Principal"
+                required
+                autofocus
+            >
+        </div>
+
+        <div class="form-group">
+            <label for="capacidade">Capacidade *</label>
+            <input 
+                type="number" 
+                id="capacidade" 
+                name="capacidade" 
+                class="form-control" 
+                placeholder="Número de pessoas"
+                min="1"
+                required
+            >
+            <small class="form-text">Quantidade máxima de pessoas que a sala comporta</small>
+        </div>
+
+        <div class="form-group">
+            <label for="descricao">Descrição (Opcional)</label>
+            <textarea 
+                id="descricao" 
+                name="descricao" 
+                class="form-control" 
+                rows="4"
+                placeholder="Informações adicionais sobre a sala..."
+            ></textarea>
+        </div>
+
+        <div class="form-actions">
+            <a href="{{ url_for('admin.salas') }}" class="btn btn-outline">
+                Cancelar
+            </a>
+            <button type="submit" class="btn btn-primary">
+                ✅ Cadastrar Sala
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

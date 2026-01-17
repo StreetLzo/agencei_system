@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+{% block title %}Escanear QR Code - Aluno{% endblock %}
+
+{% block extra_css %}
+<style>
+#video-container {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+#qr-video {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.scan-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 250px;
+    height: 250px;
+    border: 3px solid #00ff00;
+    border-radius: 12px;
+    pointer-events: none;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+}
+
+.scan-status {
+    text-align: center;
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 8px;
+    font-weight: bold;
+}
+
+.scan-status.waiting {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.scan-status.success {
+    background: #e8f5e9;
+    color: #388e3c;
+}
+
+.scan-status.error {
+    background: #ffebee;
+    color: #d32f2f;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Confirmar Presença</h1>
+    <p>Escaneie o QR Code exibido no evento</p>
+</div>
+
+<div class="qr-scanner-container">
+    <div id="video-container">
+        <video id="qr-video" autoplay playsinline></video>
+        <div class="scan-overlay"></div>
+    </div>
+
+    <div id="scan-status" class="scan-status waiting">
+        Posicione o QR Code dentro do quadrado
+    </div>
+
+    <div class="instructions">
+        <h3>Instruções:</h3>
+        <ol>
+            <li>Permita o acesso à câmera quando solicitado</li>
+            <li>Aponte a câmera para o QR Code do evento</li>
+            <li>Aguarde a confirmação automática</li>
+        </ol>
+
+        <div class="alert alert-info">
+            <strong>Importante:</strong>
+            <ul>
+                <li>Você só pode confirmar presença durante o evento</li>
+                <li>Janela de check-in: 30 min antes até 30 min depois</li>
+                <li>É necessário estar inscrito no evento</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="manual-input" style="margin-top: 30px;">
+        <details>
+            <summary style="cursor: pointer; font-weight: bold;">Opção Manual (se a câmera não funcionar)</summary>
+            <form method="POST" action="{{ url_for('aluno.confirmar_presenca') }}" style="margin-top: 15px;">
+                <div class="form-group">
+                    <label for="qr_code_lido">Código do QR Code:</label>
+                    <input 
+                        type="text" 
+                        id="qr_code_lido" 
+                        name="qr_code_lido" 
+                        class="form-control"
+                        placeholder="Cole o código aqui"
+                        required
+                    >
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">
+                    Confirmar Presença
+                </button>
+            </form>
+        </details>
+    </div>
+</div>
+
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script>
+const video = document.getElementById('qr-video');
+const statusDiv = document.getElementById('scan-status');
+let scanning = true;
+
+if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: 'environment' } 
+    })
+    .then(stream => {
+        video.srcObject = stream;
+        video.play();
+        startScanning();
+    })
+    .catch(err => {
+        console.error('Erro ao acessar câmera:', err);
+        statusDiv.className = 'scan-status error';
+        statusDiv.textContent = 'Não foi possível acessar a câmera. Use a opção manual abaixo.';
+    });
+}
+
+function startScanning() {
+    const html5QrCode = new Html5Qrcode("video-container");
+    
+    html5QrCode.start(
+        { facingMode: "environment" },
+        {
+            fps: 10,
+            qrbox: { width: 250, height: 250 }
+        },
+        (decodedText) => {
+            if (scanning) {
+                scanning = false;
+                validarQRCode(decodedText);
+            }
+        }
+    ).catch(err => {
+        console.error('Erro ao iniciar scanner:', err);
+    });
+}
+
+function validarQRCode(qrCode) {
+    statusDiv.className = 'scan-status waiting';
+    statusDiv.textContent = 'Validando código...';
+
+    fetch('{{ url_for("aluno.validar_qr") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ qr_code: qrCode })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.valido) {
+            statusDiv.className = 'scan-status success';
+            statusDiv.innerHTML = `
+                <strong>QR Code válido!</strong><br>
+                Evento: ${data.evento.nome}<br>
+                Confirmando presença...
+            `;
+            
+            setTimeout(() => {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '{{ url_for("aluno.confirmar_presenca") }}';
+                
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'qr_code_lido';
+                input.value = qrCode;
+                
+                form.appendChild(input);
+                document.body.appendChild(form);
+                form.submit();
+            }, 2000);
+        } else {
+            statusDiv.className = 'scan-status error';
+            statusDiv.textContent = data.mensagem;
+            setTimeout(() => {
+                scanning = true;
+                statusDiv.className = 'scan-status waiting';
+                statusDiv.textContent = 'Posicione o QR Code dentro do quadrado';
+            }, 3000);
+        }
+    })
+    .catch(error => {
+        statusDiv.className = 'scan-status error';
+        statusDiv.textContent = 'Erro ao validar QR Code';
+        setTimeout(() => {
+            scanning = true;
+            statusDiv.className = 'scan-status waiting';
+            statusDiv.textContent = 'Posicione o QR Code dentro do quadrado';
+        }, 3000);
+    });
+}
+</script>
+{% endblock %}

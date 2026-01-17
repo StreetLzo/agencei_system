@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Gerenciar Salas - Admin{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>🏢 Gerenciar Salas</h1>
+        <p>Visualizar e gerenciar salas do sistema</p>
+    </div>
+    <a href="{{ url_for('admin.adicionar_sala') }}" class="btn btn-primary">
+        ➕ Adicionar Sala
+    </a>
+</div>
+
+<div class="info-bar">
+    <p>📊 Total de salas: <strong>{{ salas|length }}</strong></p>
+</div>
+
+<div class="cards-grid">
+    {% if salas %}
+        {% for sala in salas %}
+        <div class="sala-card {% if not sala.ativa %}sala-card-inactive{% endif %}">
+            <div class="sala-header">
+                <h3>{{ sala.nome }}</h3>
+                {% if sala.ativa %}
+                    <span class="badge badge-success">Ativa</span>
+                {% else %}
+                    <span class="badge badge-danger">Inativa</span>
+                {% endif %}
+            </div>
+            
+            <div class="sala-body">
+                <div class="sala-info">
+                    <span class="info-icon">👥</span>
+                    <span>Capacidade: <strong>{{ sala.capacidade }}</strong> pessoas</span>
+                </div>
+                
+                {% if sala.descricao %}
+                <p class="sala-descricao">{{ sala.descricao }}</p>
+                {% endif %}
+                
+                <div class="sala-stats">
+                    <span>📅 Eventos: <strong>{{ sala.eventos|length }}</strong></span>
+                </div>
+            </div>
+            
+            <div class="sala-actions">
+                <a href="{{ url_for('admin.editar_sala', sala_id=sala.id) }}" class="btn btn-sm btn-outline">
+                    ✏️ Editar
+                </a>
+                <form method="POST" action="{{ url_for('admin.alternar_status_sala', sala_id=sala.id) }}" style="display: inline;">
+                    <button type="submit" class="btn btn-sm {% if sala.ativa %}btn-warning{% else %}btn-success{% endif %}">
+                        {% if sala.ativa %}🔒 Desativar{% else %}🔓 Ativar{% endif %}
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state-card">
+            <p>Nenhuma sala cadastrada</p>
+            <a href="{{ url_for('admin.adicionar_sala') }}" class="btn btn-primary">
+                ➕ Adicionar Primeira Sala
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

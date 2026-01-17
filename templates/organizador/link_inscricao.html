@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block title %}Link de Inscrição - {{ evento.nome_evento }}{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 700px;">
+    <div class="section-surface">
+        <div class="section-header text-center">
+            <h2 class="section-title">Link de Inscrição</h2>
+            <p class="section-subtitle">{{ evento.nome_evento }}</p>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-body text-center">
+                <p class="mb-1">{{ evento.data_hora.strftime('%d/%m/%Y às %H:%M') }}</p>
+                <p class="mb-1">{{ evento.sala.nome }}</p>
+                <p class="text-muted">{{ evento.inscricoes|length }} / {{ evento.sala.capacidade }} inscritos</p>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-body text-center">
+                <div class="qr-container mb-4">
+                    <div id="qrcode"></div>
+                </div>
+
+                <div class="form-group">
+                    <label class="fw-bold">Link de Inscrição:</label>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <input type="text" class="form-control" id="link-inscricao" 
+                               value="{{ url_for('aluno.inscrever_evento', evento_id=evento.id, _external=True) }}" 
+                               readonly>
+                        <button class="btn btn-primary" onclick="copiarLink()">Copiar</button>
+                    </div>
+                    <small class="text-muted">Compartilhe este link com os participantes para que possam se inscrever</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">Compartilhar via:</div>
+            <div class="card-body">
+                <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                    <button class="btn btn-success" onclick="compartilharWhatsApp()">WhatsApp</button>
+                    <button class="btn btn-primary" onclick="compartilharEmail()">E-mail</button>
+                    <button class="btn btn-info" onclick="compartilharTelegram()">Telegram</button>
+                    <button class="btn btn-outline" onclick="baixarQRCode()">Baixar QR Code</button>
+                </div>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem;">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h4 class="text-success mb-0">{{ evento.inscricoes|length }}</h4>
+                    <small class="text-muted">Inscritos</small>
+                </div>
+            </div>
+            <div class="card text-center">
+                <div class="card-body">
+                    <h4 class="text-info mb-0">{{ evento.sala.capacidade - evento.inscricoes|length }}</h4>
+                    <small class="text-muted">Vagas</small>
+                </div>
+            </div>
+            <div class="card text-center">
+                <div class="card-body">
+                    <h4 class="text-primary mb-0">{{ evento.sala.capacidade }}</h4>
+                    <small class="text-muted">Capacidade</small>
+                </div>
+            </div>
+        </div>
+
+        <a href="{{ url_for('organizador.detalhes_evento', evento_id=evento.id) }}" class="btn btn-outline w-100">Voltar aos Detalhes</a>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-header">Dicas para divulgação:</div>
+        <div class="card-body">
+            <ul class="mb-0">
+                <li>Imprima o QR Code e cole em locais de fácil visualização</li>
+                <li>Compartilhe o link em grupos de WhatsApp ou Telegram</li>
+                <li>Envie o link por e-mail para sua lista de contatos</li>
+                <li>Publique nas redes sociais da instituição</li>
+                <li>Adicione o QR Code em apresentações e materiais impressos</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+    const linkInscricao = "{{ url_for('aluno.inscrever_evento', evento_id=evento.id, _external=True) }}";
+    const nomeEvento = "{{ evento.nome_evento }}";
+    const dataEvento = "{{ evento.data_hora.strftime('%d/%m/%Y às %H:%M') }}";
+
+    new QRCode(document.getElementById("qrcode"), {
+        text: linkInscricao,
+        width: 256,
+        height: 256,
+        colorDark: "#000000",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.H
+    });
+
+    function copiarLink() {
+        const input = document.getElementById('link-inscricao');
+        input.select();
+        document.execCommand('copy');
+        alert('Link copiado com sucesso!');
+    }
+
+    function compartilharWhatsApp() {
+        const texto = `${nomeEvento}\n\nData: ${dataEvento}\n\nInscreva-se aqui: ${linkInscricao}`;
+        window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, '_blank');
+    }
+
+    function compartilharEmail() {
+        const assunto = `Inscrição: ${nomeEvento}`;
+        const corpo = `Olá!\n\nConvido você para participar do evento:\n\n${nomeEvento}\nData: ${dataEvento}\n\nInscreva-se através do link:\n${linkInscricao}\n\nAté lá!`;
+        window.location.href = `mailto:?subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpo)}`;
+    }
+
+    function compartilharTelegram() {
+        const texto = `${nomeEvento}\n\n${dataEvento}\n\nInscreva-se: ${linkInscricao}`;
+        window.open(`https://t.me/share/url?url=${encodeURIComponent(linkInscricao)}&text=${encodeURIComponent(texto)}`, '_blank');
+    }
+
+    function baixarQRCode() {
+        const canvas = document.querySelector('#qrcode canvas');
+        if (canvas) {
+            const link = document.createElement('a');
+            link.download = `qrcode-${nomeEvento.replace(/\s+/g, '-').toLowerCase()}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+        } else {
+            alert('Erro ao gerar QR Code para download.');
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Adicionar CPF Autorizado - Admin{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>➕ Adicionar CPF Autorizado</h1>
+    <p>Autorizar um CPF para cadastro como organizador</p>
+</div>
+
+<div class="form-container">
+    <form method="POST" action="{{ url_for('admin.adicionar_cpf_autorizado') }}" class="form-card">
+        <div class="form-group">
+            <label for="cpf">CPF *</label>
+            <input 
+                type="text" 
+                id="cpf" 
+                name="cpf" 
+                class="form-control" 
+                placeholder="000.000.000-00"
+                maxlength="14"
+                required
+                autofocus
+            >
+            <small class="form-text">Digite apenas números. O CPF será validado.</small>
+        </div>
+
+        <div class="form-group">
+            <label for="role">Função *</label>
+            <select id="role" name="role" class="form-control" required>
+                <option value="organizador" selected>Organizador</option>
+            </select>
+            <small class="form-text">Por enquanto, apenas organizadores podem ser autorizados.</small>
+        </div>
+
+        <div class="form-actions">
+            <a href="{{ url_for('admin.cpfs_autorizados') }}" class="btn btn-outline">
+                Cancelar
+            </a>
+            <button type="submit" class="btn btn-primary">
+                ✅ Autorizar CPF
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+// Máscara de CPF
+document.getElementById('cpf').addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value.length <= 11) {
+        value = value.replace(/(\d{3})(\d)/, '$1.$2');
+        value = value.replace(/(\d{3})(\d)/, '$1.$2');
+        value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+        e.target.value = value;
+    }
+});
+</script>
+{% endblock %}

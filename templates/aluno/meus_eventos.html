@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}Meus Eventos | AGENCEI{% endblock %}
+
+{% block content %}
+<div class="page-header mb-4">
+    <h1>Meus Eventos</h1>
+    <p>Acompanhe seus eventos inscritos e o status da sua participação</p>
+</div>
+
+{% if eventos_data %}
+<div class="eventos-list">
+    {% for item in eventos_data %}
+    {% set evento = item.evento %}
+    {% set inscricao = item.inscricao %}
+
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header d-flex justify-content-between align-items-start
+            {% if evento.esta_ativo() %}bg-success text-white
+            {% elif evento.ja_terminou() %}bg-secondary text-white
+            {% else %}bg-warning{% endif %}">
+
+            <div>
+                <h4 class="mb-1">{{ evento.nome_evento }}</h4>
+                <small>
+                    {{ evento.data_hora.strftime('%d/%m/%Y às %H:%M') }} •
+                    {{ evento.duracao_horas }}h •
+                    {{ evento.sala.nome }}
+                </small>
+            </div>
+
+            {% if evento.esta_ativo() %}
+                <span class="badge badge-light">Em andamento</span>
+            {% elif evento.ja_terminou() %}
+                <span class="badge badge-light">Encerrado</span>
+            {% else %}
+                <span class="badge badge-dark">Agendado</span>
+            {% endif %}
+        </div>
+
+        <div class="card-body">
+            {% if evento.descricao %}
+            <p class="text-muted mb-3">
+                {{ evento.descricao }}
+            </p>
+            {% endif %}
+
+            <div class="mb-3">
+                <strong>Status da sua inscrição:</strong><br>
+
+                {% if inscricao.esta_presente %}
+                    <span class="badge badge-success badge-lg">Presente</span>
+                {% elif inscricao.status_presenca == 'Ausente' %}
+                    <span class="badge badge-danger badge-lg">Ausente</span>
+                {% else %}
+                    <span class="badge badge-warning badge-lg">Aguardando check-in</span>
+                {% endif %}
+            </div>
+
+            <div class="text-muted small mb-3">
+                Inscrito em: {{ inscricao.inscrito_em.strftime('%d/%m/%Y às %H:%M') }}
+                {% if inscricao.presenca_confirmada_em %}
+                <br>
+                Check-in realizado em: {{ inscricao.presenca_confirmada_em.strftime('%d/%m/%Y às %H:%M') }}
+                {% endif %}
+            </div>
+
+            <div class="d-flex gap-2 flex-wrap">
+                <a href="{{ url_for('aluno.detalhes_evento', evento_id=evento.id) }}"
+                   class="btn btn-outline btn-sm">
+                    Ver detalhes
+                </a>
+
+                {% if not evento.ja_terminou() and not inscricao.esta_presente %}
+                <form method="POST"
+                      action="{{ url_for('aluno.cancelar_inscricao', evento_id=evento.id) }}"
+                      onsubmit="return confirm('Deseja cancelar sua inscrição?')">
+                    <button class="btn btn-danger btn-sm">
+                        Cancelar inscrição
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% else %}
+<div class="empty-state-card text-center">
+    <p class="fs-5">Você ainda não possui inscrições em eventos</p>
+    <a href="{{ url_for('aluno.eventos_disponiveis') }}"
+       class="btn btn-primary mt-3">
+        Ver eventos disponíveis
+    </a>
+</div>
+{% endif %}
+{% endblock %}

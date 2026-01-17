@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Reservar Sala - Organizador{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 800px;">
+    <div class="section-surface">
+        <div class="section-header">
+            <h1 class="section-title">Criar Evento</h1>
+            <p class="section-subtitle">Reservar sala: <strong>{{ sala.nome }}</strong> (Capacidade: {{ sala.capacidade }} pessoas)</p>
+        </div>
+
+        <form method="POST" action="{{ url_for('organizador.reservar_sala', sala_id=sala.id) }}">
+            <div class="form-group">
+                <label for="nome_evento">Nome do Evento *</label>
+                <input type="text" id="nome_evento" name="nome_evento" class="form-control" 
+                       placeholder="Ex: Workshop de Python" required autofocus>
+            </div>
+
+            <div class="form-group">
+                <label for="descricao">Descrição (Opcional)</label>
+                <textarea id="descricao" name="descricao" class="form-control" rows="4"
+                          placeholder="Descreva o evento..."></textarea>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="data">Data *</label>
+                    <input type="date" id="data" name="data" class="form-control" 
+                           min="{{ today }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="hora">Horário *</label>
+                    <input type="time" id="hora" name="hora" class="form-control" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="duracao">Duração (horas) *</label>
+                <input type="number" id="duracao" name="duracao" class="form-control" 
+                       placeholder="Ex: 2.5" step="0.5" min="0.5" max="12" required>
+                <small class="text-muted">De 0.5 a 12 horas. Use ponto para decimais (ex: 2.5)</small>
+            </div>
+
+            <div class="alert alert-info">
+                <strong>Informações importantes:</strong>
+                <ul class="mb-0">
+                    <li>O QR Code para confirmação de presença será gerado automaticamente</li>
+                    <li>Você receberá um link de inscrição para compartilhar com os participantes</li>
+                    <li>A capacidade máxima é de {{ sala.capacidade }} pessoas</li>
+                </ul>
+            </div>
+
+            <div style="display: flex; gap: 1rem; justify-content: space-between; margin-top: 2rem;">
+                <a href="{{ url_for('organizador.salas') }}" class="btn btn-outline">Cancelar</a>
+                <button type="submit" class="btn btn-primary">Criar Evento</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.getElementById('data').min = new Date().toISOString().split('T')[0];
+</script>
+{% endblock %}

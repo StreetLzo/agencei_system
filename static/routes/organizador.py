@@ -1,46 +1,41 @@
 """
 Blueprint: Organizador
-Gerenciamento de eventos e salas por organizadores
+Gerenciamento de salas e eventos criados pelo organizador
 """
+
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import current_user
+from datetime import datetime, timedelta
+
 from extensions import db
 from models.sala import Sala
 from models.evento import Evento
 from models.inscricao import Inscricao
-from models.user import Usuario
 from utils.decorators import role_required
-from datetime import datetime, timedelta
 
 organizador_bp = Blueprint('organizador', __name__)
 
 
-@organizador_bp.route('/salas')
+@organizador_bp.route('/salas', endpoint='salas')
 @role_required('organizador')
 def salas():
-    """
-    Visualizar todas as salas disponíveis
-    """
-    # Buscar apenas salas ativas
+    """Listar salas ativas"""
     salas = Sala.query.filter_by(ativa=True).order_by(Sala.capacidade.desc()).all()
-    
     return render_template('organizador/salas.html', salas=salas)
 
 
-@organizador_bp.route('/salas/<int:sala_id>/detalhes')
+
+@organizador_bp.route('/salas/<int:sala_id>/detalhes', endpoint='detalhes_sala')
 @role_required('organizador')
 def detalhes_sala(sala_id):
-    """
-    Ver detalhes e disponibilidade de uma sala
-    """
+    """Detalhes da sala e eventos futuros"""
     sala = Sala.query.get_or_404(sala_id)
-    
-    # Buscar eventos futuros da sala
+
     eventos_sala = Evento.query.filter(
         Evento.sala_id == sala_id,
         Evento.data_hora >= datetime.now()
     ).order_by(Evento.data_hora.asc()).all()
-    
+
     return render_template(
         'organizador/detalhes_sala.html',
         sala=sala,
@@ -48,8 +43,9 @@ def detalhes_sala(sala_id):
     )
 
 
+
 @organizador_bp.route('/salas/<int:sala_id>/reservar', methods=['GET', 'POST'])
-@role_required('organizador')
+@role_required('organizador', fallback_endpoint='auth.login')
 def reservar_sala(sala_id):
     """
     Criar novo evento/reserva em uma sala
@@ -141,87 +137,58 @@ def reservar_sala(sala_id):
     return render_template('organizador/reservar_sala.html', sala=sala)
 
 
-@organizador_bp.route('/reservas')
+@organizador_bp.route('/reservas', endpoint='reservas')
 @role_required('organizador')
 def minhas_reservas():
-    """
-    Listar todos os eventos criados pelo organizador
-    """
-    # Filtros
     filtro = request.args.get('filtro', 'todos')
-    
     query = Evento.query.filter_by(organizador_id=current_user.id)
-    
+
+    agora = datetime.now()
+
     if filtro == 'futuros':
-        query = query.filter(Evento.data_hora >= datetime.now())
+        query = query.filter(Evento.data_hora >= agora)
     elif filtro == 'passados':
-        query = query.filter(Evento.data_hora < datetime.now())
+        query = query.filter(Evento.data_hora < agora)
     elif filtro == 'ativos':
-        # Eventos acontecendo agora
-        agora = datetime.now()
-        query = query.filter(
-            Evento.data_hora <= agora,
-            Evento.data_hora + db.func.julianday(Evento.duracao_horas / 24.0) >= agora
-        )
-    
-    eventos = query.order_by(Evento.data_hora.desc()).all()
-    
-    # Preparar dados para o template
-    eventos_data = []
-    for evento in eventos:
-        eventos_data.append({
-            'evento': evento,
-            'sala': evento.sala,
-            'num_inscritos': evento.num_inscritos,
-            'num_presentes': evento.num_presentes,
-            'pode_excluir': evento.pode_ser_excluido(),
-            'ja_terminou': evento.ja_terminou(),
-            'esta_ativo': evento.esta_ativo()
-        })
-    
+        eventos = []
+        for ev in query.all():
+            fim = ev.data_hora + timedelta(hours=ev.duracao_horas)
+            if ev.data_hora <= agora <= fim:
+                eventos.append(ev)
+        query = eventos
+    else:
+        query = query.order_by(Evento.data_hora.desc()).all()
+
+    eventos = query if isinstance(query, list) else query.all()
+
     return render_template(
         'organizador/minhas_reservas.html',
-        eventos_data=eventos_data,
+        eventos=eventos,
         filtro=filtro
     )
 
 
-@organizador_bp.route('/reservas/<int:evento_id>')
+
+@organizador_bp.route('/reservas/<int:evento_id>', endpoint='detalhes_evento')
 @role_required('organizador')
 def detalhes_evento(evento_id):
-    """
-    Ver detalhes de um evento específico
-    """
-    evento = Evento.query.get_or_404(evento_id)
-    
-    # Verificar se o evento pertence ao organizador atual
-    if evento.organizador_id != current_user.id:
-        flash('❌ Você não tem permissão para ver este evento.', 'error')
-        return redirect(url_for('organizador.minhas_reservas'))
-    
-    # Buscar inscrições
-    inscricoes = Inscricao.query.filter_by(evento_id=evento_id).all()
-    
-    # Preparar dados dos participantes
-    participantes_data = []
-    for inscricao in inscricoes:
-        participantes_data.append({
-            'aluno': inscricao.aluno,
-            'status': inscricao.status_presenca,
-            'inscrito_em': inscricao.inscrito_em,
-            'presenca_confirmada_em': inscricao.presenca_confirmada_em
-        })
-    
+    evento = Evento.query.filter_by(
+        id=evento_id,
+        organizador_id=current_user.id
+    ).first_or_404()
+
+    inscricoes = Inscricao.query.filter_by(evento_id=evento.id).all()
+
     return render_template(
         'organizador/detalhes_evento.html',
         evento=evento,
         sala=evento.sala,
-        participantes=participantes_data
+        inscricoes=inscricoes
     )
 
 
 @organizador_bp.route('/reservas/<int:evento_id>/participantes')
-@role_required('organizador')
+@role_required('organizador', fallback_endpoint='auth.login')
 def lista_participantes(evento_id):
     """
     Listar participantes de um evento com QR Code
@@ -255,129 +222,48 @@ def lista_participantes(evento_id):
     )
 
 
-@organizador_bp.route('/reservas/<int:evento_id>/editar', methods=['GET', 'POST'])
+@organizador_bp.route('/reservas/<int:evento_id>/editar', methods=['GET', 'POST'], endpoint='editar_evento')
 @role_required('organizador')
 def editar_evento(evento_id):
-    """
-    Editar evento existente
-    """
-    evento = Evento.query.get_or_404(evento_id)
+    evento = Evento.query.filter_by(
+        id=evento_id,
+        organizador_id=current_user.id
+    ).first_or_404()
 
-    # ⬇️ AQUI (logo após buscar o evento)
-    salas = Sala.query.filter_by(ativa=True).all()
-
-    # Verificar permissão
-    if evento.organizador_id != current_user.id:
-        flash('❌ Você não tem permissão para editar este evento.', 'error')
-        return redirect(url_for('organizador.minhas_reservas'))
-
-    # Não permitir editar eventos passados
     if evento.ja_terminou():
-        flash('❌ Não é possível editar eventos que já ocorreram.', 'error')
-        return redirect(url_for('organizador.minhas_reservas'))
+        flash('❌ Evento já encerrado.', 'error')
+        return redirect(url_for('organizador.reservas'))
 
     if request.method == 'POST':
-        nome_evento = request.form.get('nome_evento', '').strip()
-        descricao = request.form.get('descricao', '').strip()
-        data_str = request.form.get('data', '').strip()
-        hora_str = request.form.get('hora', '').strip()
-        duracao_str = request.form.get('duracao', '').strip()
-
-        # Validações
-        if not all([nome_evento, data_str, hora_str, duracao_str]):
-            flash('❌ Preencha todos os campos obrigatórios.', 'error')
-            return render_template(
-                'organizador/editar_evento.html',
-                evento=evento,
-                salas=salas
-            )
+        evento.nome_evento = request.form['nome_evento']
+        evento.descricao = request.form.get('descricao') or None
 
         try:
-            duracao = float(duracao_str)
-            if duracao <= 0 or duracao > 12:
-                flash('❌ Duração deve ser entre 0.5 e 12 horas.', 'error')
-                return render_template(
-                    'organizador/editar_evento.html',
-                    evento=evento,
-                    salas=salas
-                )
-        except ValueError:
-            flash('❌ Duração inválida.', 'error')
-            return render_template(
-                'organizador/editar_evento.html',
-                evento=evento,
-                salas=salas
+            data_hora = datetime.strptime(
+                f"{request.form['data']} {request.form['hora']}",
+                '%Y-%m-%d %H:%M'
             )
+            duracao = float(request.form['duracao'])
+        except Exception:
+            flash('❌ Dados inválidos.', 'error')
+            return render_template('organizador/editar_evento.html', evento=evento)
 
-        # Montar data/hora
-        data_hora_str = f"{data_str} {hora_str}"
-        try:
-            data_hora = datetime.strptime(data_hora_str, '%Y-%m-%d %H:%M')
-        except ValueError:
-            flash('❌ Data ou hora inválida.', 'error')
-            return render_template(
-                'organizador/editar_evento.html',
-                evento=evento,
-                salas=salas
-            )
-
-        if data_hora < datetime.now():
-            flash('❌ Não é possível agendar eventos no passado.', 'error')
-            return render_template(
-                'organizador/editar_evento.html',
-                evento=evento,
-                salas=salas
-            )
-
-        # Verificar conflito
-        eventos_sala = Evento.query.filter(
-            Evento.sala_id == evento.sala_id,
-            Evento.id != evento.id
-        ).all()
-
-        data_fim = data_hora + timedelta(hours=duracao)
-
-        for ev in eventos_sala:
-            ev_fim = ev.data_hora + timedelta(hours=ev.duracao_horas)
-            if (data_hora < ev_fim) and (ev.data_hora < data_fim):
-                flash(
-                    f'❌ Conflito com o evento "{ev.nome_evento}" '
-                    f'em {ev.data_hora.strftime("%d/%m/%Y às %H:%M")}.',
-                    'error'
-                )
-                return render_template(
-                    'organizador/editar_evento.html',
-                    evento=evento,
-                    salas=salas
-                )
-
-        # Atualizar evento
-        evento.nome_evento = nome_evento
-        evento.descricao = descricao if descricao else None
         evento.data_hora = data_hora
         evento.duracao_horas = duracao
 
         try:
             db.session.commit()
-            flash('✅ Evento atualizado com sucesso!', 'success')
-            return redirect(
-                url_for('organizador.detalhes_evento', evento_id=evento.id)
-            )
+            flash('✅ Evento atualizado!', 'success')
+            return redirect(url_for('organizador.detalhes_evento', evento_id=evento.id))
         except Exception as e:
             db.session.rollback()
-            flash(f'❌ Erro ao atualizar evento: {str(e)}', 'error')
+            flash(f'❌ Erro: {e}', 'error')
 
-    # GET
-    return render_template(
-        'organizador/editar_evento.html',
-        evento=evento,
-        salas=salas
-    )
-
+    return render_template('organizador/editar_evento.html', evento=evento)
 
 
 @organizador_bp.route('/reservas/<int:evento_id>/excluir', methods=['POST'])
-@role_required('organizador')
+@role_required('organizador', fallback_endpoint='auth.login')
 def excluir_evento(evento_id):
     """
     Excluir evento
@@ -408,7 +294,7 @@ def excluir_evento(evento_id):
 
 
 @organizador_bp.route('/reservas/<int:evento_id>/link-inscricao')
-@role_required('organizador')
+@role_required('organizador', fallback_endpoint='auth.login')
 def gerar_link_inscricao(evento_id):
     """
     Gerar link de inscrição compartilhável
@@ -428,31 +314,3 @@ def gerar_link_inscricao(evento_id):
         evento=evento,
         link_inscricao=link_inscricao
     )
-
-@organizador_bp.route('/reservas/<int:evento_id>/cancelar', methods=['POST'])
-@role_required('organizador')
-def cancelar_evento(evento_id):
-    """
-    Cancelar (excluir) um evento
-    """
-    evento = Evento.query.get_or_404(evento_id)
-
-    # Verificar permissão
-    if evento.organizador_id != current_user.id:
-        flash('❌ Você não tem permissão para cancelar este evento.', 'error')
-        return redirect(url_for('organizador.minhas_reservas'))
-
-    # Não permitir cancelar eventos já ocorridos
-    if evento.ja_terminou():
-        flash('❌ Não é possível cancelar eventos que já ocorreram.', 'error')
-        return redirect(url_for('organizador.detalhes_evento', evento_id=evento.id))
-
-    try:
-        db.session.delete(evento)
-        db.session.commit()
-        flash('✅ Evento cancelado com sucesso.', 'success')
-    except Exception as e:
-        db.session.rollback()
-        flash(f'❌ Erro ao cancelar evento: {str(e)}', 'error')
-
-    return redirect(url_for('organizador.minhas_reservas'))
