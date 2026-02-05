@@ -22,13 +22,25 @@
             <div>
                 <h4 class="mb-1">{{ evento.nome_evento }}</h4>
                 <small>
-                    {{ evento.data_hora.strftime('%d/%m/%Y às %H:%M') }} •
-                    {{ evento.duracao_horas }}h •
+                    {% if evento.data_hora %}
+                        {{ evento.data_hora.strftime('%d/%m/%Y às %H:%M') }} •
+                    {% else %}
+                        Evento permanente •
+                    {% endif %}
+
+                    {% if evento.duracao_horas %}
+                        {{ evento.duracao_horas }}h •
+                    {% else %}
+                        Duração indefinida •
+                    {% endif %}
+
                     {{ evento.sala.nome }}
                 </small>
             </div>
 
-            {% if evento.esta_ativo() %}
+            {% if evento.duracao_horas is none %}
+                <span class="badge badge-info">Permanente</span>
+            {% elif evento.esta_ativo() %}
                 <span class="badge badge-light">Em andamento</span>
             {% elif evento.ja_terminou() %}
                 <span class="badge badge-light">Encerrado</span>
@@ -57,10 +69,14 @@
             </div>
 
             <div class="text-muted small mb-3">
-                Inscrito em: {{ inscricao.inscrito_em.strftime('%d/%m/%Y às %H:%M') }}
+                {% if inscricao.inscrito_em %}
+                    Inscrito em: {{ inscricao.inscrito_em.strftime('%d/%m/%Y às %H:%M') }}
+                {% endif %}
+
                 {% if inscricao.presenca_confirmada_em %}
                 <br>
-                Check-in realizado em: {{ inscricao.presenca_confirmada_em.strftime('%d/%m/%Y às %H:%M') }}
+                Check-in realizado em:
+                {{ inscricao.presenca_confirmada_em.strftime('%d/%m/%Y às %H:%M') }}
                 {% endif %}
             </div>
 

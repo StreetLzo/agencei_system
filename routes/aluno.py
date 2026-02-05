@@ -21,6 +21,7 @@ def eventos_disponiveis():
     Listar eventos disponíveis para inscrição
     """
     eventos = Evento.listar_disponiveis(apenas_futuros=True)
+
     eventos_data = []
 
     for evento in eventos:

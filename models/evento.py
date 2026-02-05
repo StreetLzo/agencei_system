@@ -3,9 +3,9 @@ Model: Evento
 Representa os eventos/palestras/atividades agendadas
 """
 from extensions import db
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import hashlib
-
+from sqlalchemy import or_
 
 class Evento(db.Model):
     """
@@ -17,8 +17,8 @@ class Evento(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nome_evento = db.Column(db.String(150), nullable=False)
     descricao = db.Column(db.Text, nullable=True)
-    data_hora = db.Column(db.DateTime, nullable=False, index=True)
-    duracao_horas = db.Column(db.Float, nullable=False)
+    data_hora = db.Column(db.DateTime, nullable=True, index=True)
+    duracao_horas = db.Column(db.Float, nullable=True)
     qr_code_link = db.Column(db.String(250), unique=True, nullable=False)
     
     # Relacionamentos
@@ -38,6 +38,8 @@ class Evento(db.Model):
     @property
     def data_hora_fim(self):
         """Retorna a data/hora de término do evento"""
+        if self.duracao_horas is None:
+            return None
         return self.data_hora + timedelta(hours=self.duracao_horas)
     
     @property
@@ -52,10 +54,14 @@ class Evento(db.Model):
     
     def ja_iniciou(self):
         """Verifica se o evento já começou"""
+        if self.data_hora is None:
+            return False
         return datetime.now() >= self.data_hora
     
     def ja_terminou(self):
         """Verifica se o evento já terminou"""
+        if self.duracao_horas is None:
+            return False
         return datetime.now() >= self.data_hora_fim
     
     def esta_ativo(self):
@@ -66,6 +72,9 @@ class Evento(db.Model):
         """
         Verifica se está na janela de confirmação de presença
         """
+        # 🔒 EVENTO PERMANENTE: nunca permite confirmação por horário
+        if self.data_hora is None:
+            return False
         agora = datetime.now()
         janela_inicio = self.data_hora - timedelta(minutes=minutos_antes)
         janela_fim = self.data_hora_fim + timedelta(minutes=minutos_depois)
@@ -108,6 +117,12 @@ class Evento(db.Model):
         query = Evento.query
         
         if apenas_futuros:
-            query = query.filter(Evento.data_hora >= datetime.now())
+            agora = datetime.now(timezone.utc) 
+            query = query.filter(
+                or_(
+                        Evento.data_hora == None,
+                        Evento.data_hora >= agora
+                )
+            )
         
-        return query.order_by(Evento.data_hora.asc()).all()
+        return query.order_by(Evento.data_hora.asc().nullsfirst()).all()

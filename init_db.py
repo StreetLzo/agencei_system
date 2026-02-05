@@ -1,3 +1,6 @@
+# USO LOCAL APENAS
+# python init_db.py
+
 from app import create_app
 from extensions import db
 from models import User, Sala, Evento, Inscricao

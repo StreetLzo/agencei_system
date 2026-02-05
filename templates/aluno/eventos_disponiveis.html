@@ -50,8 +50,21 @@
                         <p>
                             <strong>Local:</strong> {{ item.sala.nome }} <br>
                             <strong>Capacidade:</strong> {{ item.capacidade }} pessoas <br>
-                            <strong>Data:</strong> {{ item.evento.data_hora.strftime('%d/%m/%Y às %H:%M') }} <br>
-                            <strong>Duração:</strong> {{ item.evento.duracao_horas }} hora(s)
+
+                            <strong>Data:</strong>
+                            {% if item.evento.data_hora %}
+                                {{ item.evento.data_hora.strftime('%d/%m/%Y às %H:%M') }}
+                            {% else %}
+                                🔁 Evento permanente (disponível a qualquer momento)
+                            {% endif %}
+                            <br>
+
+                            <strong>Duração:</strong>
+                            {% if item.evento.duracao_horas %}
+                                {{ item.evento.duracao_horas }} hora(s)
+                            {% else %}
+                                Indeterminada
+                            {% endif %}
                         </p>
 
                         {% if item.evento.descricao %}
