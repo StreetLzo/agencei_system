@@ -11,7 +11,14 @@
 
         <div class="card mb-4">
             <div class="card-body text-center">
-                <p class="mb-1">{{ evento.data_hora.strftime('%d/%m/%Y às %H:%M') }}</p>
+                {# CORREÇÃO 1: Proteção para data nula no HTML #}
+                <p class="mb-1">
+                    {% if evento.data_hora %}
+                        {{ evento.data_hora.strftime('%d/%m/%Y às %H:%M') }}
+                    {% else %}
+                        <span class="text-danger">Data não definida</span>
+                    {% endif %}
+                </p>
                 <p class="mb-1">{{ evento.sala.nome }}</p>
                 <p class="text-muted">{{ evento.inscricoes|length }} / {{ evento.sala.capacidade }} inscritos</p>
             </div>
@@ -90,7 +97,9 @@
 <script>
     const linkInscricao = "{{ url_for('aluno.inscrever_evento', evento_id=evento.id, _external=True) }}";
     const nomeEvento = "{{ evento.nome_evento }}";
-    const dataEvento = "{{ evento.data_hora.strftime('%d/%m/%Y às %H:%M') }}";
+    
+    
+    const dataEvento = "{% if evento.data_hora %}{{ evento.data_hora.strftime('%d/%m/%Y às %H:%M') }}{% else %}Data não definida{% endif %}";
 
     new QRCode(document.getElementById("qrcode"), {
         text: linkInscricao,

@@ -8,7 +8,12 @@
             <h2 class="section-title">Lista de Participantes</h2>
             <p class="section-subtitle">
                 <strong>{{ evento.nome_evento }}</strong><br>
-                {{ evento.data_hora.strftime('%d/%m/%Y às %H:%M') }} • {{ evento.sala.nome }}
+                {% if evento.data_hora %}
+                    {{ evento.data_hora.strftime('%d/%m/%Y às %H:%M') }}
+                {% else %}
+                    <span class="text-danger">Data não definida</span>
+                {% endif %} 
+                • {{ evento.sala.nome }}
             </p>
         </div>
 
@@ -18,46 +23,15 @@
             </div>
             <div class="card-body text-center">
                 <p class="mb-4">Os participantes devem escanear este código durante o evento</p>
-
                 <div class="qr-container">
                     <div id="qrcode"></div>
-                    <div
-                        style="margin-top: 1rem; font-family: monospace; font-size: 0.875rem; font-weight: 600; color: var(--gray-700); padding: 0.5rem 1rem; background: var(--gray-100); border-radius: var(--radius-md); display: inline-block;">
+                    <div style="margin-top: 1rem; font-family: monospace; font-size: 0.875rem; font-weight: 600; color: var(--gray-700); padding: 0.5rem 1rem; background: var(--gray-100); border-radius: var(--radius-md); display: inline-block;">
                         {{ evento.qr_code_link }}
                     </div>
                 </div>
-
                 <div class="alert alert-info mt-4 mb-0">
                     <strong>Janela de confirmação:</strong><br>
                     30 minutos antes do início até 30 minutos após o término do evento
-                </div>
-            </div>
-        </div>
-
-        <div
-            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
-            {% set total_inscritos = inscricoes|length %}
-            {% set total_presentes = inscricoes|selectattr('status_presenca', 'equalto', 'Presente')|list|length %}
-            {% set total_aguardando = inscricoes|selectattr('status_presenca', 'equalto', 'Aguardando')|list|length %}
-
-            <div class="card text-center">
-                <div class="card-body">
-                    <h2 class="mb-1">{{ total_inscritos }}</h2>
-                    <small class="text-muted">Total Inscritos</small>
-                </div>
-            </div>
-
-            <div class="card text-center" style="border-left: 4px solid var(--success);">
-                <div class="card-body">
-                    <h2 class="text-success mb-1">{{ total_presentes }}</h2>
-                    <small class="text-muted">Confirmaram Presença</small>
-                </div>
-            </div>
-
-            <div class="card text-center" style="border-left: 4px solid var(--warning);">
-                <div class="card-body">
-                    <h2 class="text-warning mb-1">{{ total_aguardando }}</h2>
-                    <small class="text-muted">Aguardando</small>
                 </div>
             </div>
         </div>
@@ -86,9 +60,8 @@
                             <tr>
                                 <td>{{ loop.index }}</td>
                                 <td><strong>{{ inscricao.aluno.nome }}</strong></td>
-                                <td>{{ inscricao.aluno.cpf[:3] }}.{{ inscricao.aluno.cpf[3:6] }}.{{
-                                    inscricao.aluno.cpf[6:9] }}-{{ inscricao.aluno.cpf[9:] }}</td>
-                                <td>{{ inscricao.inscrito_em.strftime('%d/%m/%Y %H:%M') }}</td>
+                                <td>{{ inscricao.aluno.cpf[:3] }}.{{ inscricao.aluno.cpf[3:6] }}.{{ inscricao.aluno.cpf[6:9] }}-{{ inscricao.aluno.cpf[9:] }}</td>
+                                <td>{{ inscricao.inscrito_em.strftime('%d/%m/%Y %H:%M') if inscricao.inscrito_em else '—' }}</td>
                                 <td>
                                     {% if inscricao.esta_presente %}
                                     <span class="badge badge-success">Presente</span>
@@ -99,11 +72,7 @@
                                     {% endif %}
                                 </td>
                                 <td>
-                                    {% if inscricao.presenca_confirmada_em %}
-                                    {{ inscricao.presenca_confirmada_em.strftime('%d/%m/%Y %H:%M') }}
-                                    {% else %}
-                                    <span class="text-muted">—</span>
-                                    {% endif %}
+                                    {{ inscricao.presenca_confirmada_em.strftime('%d/%m/%Y %H:%M') if inscricao.presenca_confirmada_em else '—' }}
                                 </td>
                             </tr>
                             {% endfor %}
@@ -111,86 +80,47 @@
                     </table>
                 </div>
             </div>
-
             <div class="card-footer">
-                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                    <button onclick="exportarCSV()" class="btn btn-primary">Exportar CSV</button>
-                    <button onclick="window.print()" class="btn btn-outline">Imprimir Lista</button>
-                    <a href="{{ url_for('organizador.minhas_reservas') }}" class="btn btn-outline">Voltar</a>
-                </div>
+                <button onclick="exportarCSV()" class="btn btn-primary">Exportar CSV</button>
+                <button onclick="window.print()" class="btn btn-outline">Imprimir Lista</button>
+                <a href="{{ url_for('organizador.minhas_reservas') }}" class="btn btn-outline">Voltar</a>
             </div>
-
             {% else %}
-            <div class="card-body">
-                <div class="text-center py-5">
-                    <p class="text-muted">Nenhum participante inscrito ainda</p>
-                </div>
+            <div class="card-body text-center py-5">
+                <p class="text-muted">Nenhum participante inscrito ainda</p>
             </div>
             {% endif %}
         </div>
     </div>
 </div>
+
 <script type="text/template" id="csv-template">
 Nome,CPF,Inscrito em,Status,Check-in realizado em
 {% for inscricao in inscricoes -%}
-"{{ inscricao.aluno.nome }}","{{ inscricao.aluno.cpf }}","{{ inscricao.inscrito_em.strftime('%d/%m/%Y %H:%M') }}","{{ inscricao.status_presenca }}","{% if inscricao.presenca_confirmada_em %}{{ inscricao.presenca_confirmada_em.strftime('%d/%m/%Y %H:%M') }}{% else %}Não confirmado{% endif %}"
+"{{ inscricao.aluno.nome }}","{{ inscricao.aluno.cpf }}","{{ inscricao.inscrito_em.strftime('%d/%m/%Y %H:%M') if inscricao.inscrito_em else 'N/A' }}","{{ inscricao.status_presenca }}","{{ inscricao.presenca_confirmada_em.strftime('%d/%m/%Y %H:%M') if inscricao.presenca_confirmada_em else 'Não confirmado' }}"
 {% endfor %}
 </script>
+
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         new QRCode(document.getElementById("qrcode"), {
             text: "{{ evento.qr_code_link }}",
             width: 256,
-            height: 256,
-            colorDark: "#000000",
-            colorLight: "#ffffff",
-            correctLevel: QRCode.CorrectLevel.H
+            height: 256
         });
     });
 
     function exportarCSV() {
         const evento = "{{ evento.nome_evento }}";
-        const data = "{{ evento.data_hora.strftime('%Y-%m-%d') }}";
-
-        // Pega o conteúdo prontinho de dentro da nossa tag template
-        // O .trim() remove espaços em branco extras no começo/fim
+        const data = "{% if evento.data_hora %}{{ evento.data_hora.strftime('%Y-%m-%d') }}{% else %}sem-data{% endif %}";
         const csv = document.getElementById('csv-template').innerHTML.trim();
-
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-
-        // Garante que o nome do arquivo não tenha caracteres estranhos
-        const nomeArquivo = `participantes_${evento.replace(/[^a-z0-9]/gi, '_')}_${data}.csv`;
-
-        link.download = nomeArquivo;
+        link.download = `participantes_${evento.replace(/[^a-z0-9]/gi, '_')}_${data}.csv`;
         link.click();
-        window.URL.revokeObjectURL(url);
     }
 </script>
-
-<style>
-    @media print {
-
-        .navbar,
-        .footer,
-        .card-footer,
-        .qr-container,
-        .alert {
-            display: none !important;
-        }
-
-        .section-surface {
-            box-shadow: none !important;
-            padding: 0 !important;
-        }
-
-        .card {
-            box-shadow: none !important;
-            border: 1px solid #000 !important;
-        }
-    }
-</style>
 {% endblock %}

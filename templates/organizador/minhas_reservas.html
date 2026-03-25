@@ -33,7 +33,12 @@
                             <h3 class="mb-2">{{ item.evento.nome_evento }}</h3>
                             <p class="text-muted mb-0" style="font-size: 0.9rem;">
                                 {{ item.sala.nome }} • 
-                                {{ item.evento.data_hora.strftime('%d/%m/%Y às %H:%M') }} • 
+                                {# CORREÇÃO DA DATA AQUI #}
+                                {% if item.evento.data_hora %}
+                                    {{ item.evento.data_hora.strftime('%d/%m/%Y às %H:%M') }}
+                                {% else %}
+                                    Data não definida
+                                {% endif %} •
                                 {{ item.evento.duracao_horas }}h
                             </p>
                         </div>
@@ -56,7 +61,8 @@
                         <div style="display: flex; gap: 2rem; margin-bottom: 1.5rem;">
                             <div>
                                 <span class="text-muted d-block" style="font-size: 0.8rem;">Inscritos:</span>
-                                <span class="fw-bold">{{ evento.inscricoes|length }}</span>
+                                {# CORREÇÃO DA VARIÁVEL DE INSCRIÇÕES AQUI #}
+                                <span class="fw-bold">{{ item.evento.inscricoes|length }}</span>
                             </div>
                             <div>
                                 <span class="text-muted d-block" style="font-size: 0.8rem;">Presentes:</span>
