@@ -1,154 +1,288 @@
 {% extends "base.html" %}
-{% block title %}Gerenciar Eventos - Agencei{% endblock %}
+
+{% block title %}Gerenciar Eventos - Admin{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row mb-4">
-        <div class="col-md-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <h2>Todos os Eventos</h2>
-                <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">
-                    Voltar
-                </a>
-            </div>
+<div class="page-header mb-4 d-flex justify-content-between align-items-center">
+    <div>
+        <h1 class="dashboard-title">📅 Gerenciar Eventos</h1>
+        <p class="dashboard-subtitle">Listagem e controle de todos os eventos do sistema</p>
+    </div>
+    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary" style="border-radius: var(--radius-md, 8px);">
+        Voltar ao Dashboard
+    </a>
+</div>
+
+<div class="stats-grid mb-4">
+    <div class="stat-card">
+        <div class="stat-icon" style="background: rgba(102, 126, 234, 0.1); color: var(--primary, #667eea);">📊</div>
+        <div class="stat-content">
+            <h3>{{ eventos|length }}</h3>
+            <p>Total de Eventos</p>
         </div>
     </div>
 
-    <div class="card mb-4 shadow-sm">
-        <div class="card-body">
-            <form method="GET" class="row g-3">
-                <div class="col-md-4">
-                    <input type="text" name="busca" class="form-control" placeholder="Buscar por nome..." value="{{ request.args.get('busca', '') }}">
-                </div>
-                <div class="col-md-3">
-                    <select name="status" class="form-select">
-                        <option value="">Todos os status</option>
-                        <option value="agendado" {% if request.args.get('status') == 'agendado' %}selected{% endif %}>Agendados</option>
-                        <option value="andamento" {% if request.args.get('status') == 'andamento' %}selected{% endif %}>Em andamento</option>
-                        <option value="encerrado" {% if request.args.get('status') == 'encerrado' %}selected{% endif %}>Encerrados</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <select name="organizador" class="form-select">
-                        <option value="">Todos organizadores</option>
-                        {% for org in organizadores %}
-                        <option value="{{ org.id }}" {% if request.args.get('organizador') == org.id|string %}selected{% endif %}>
-                            {{ org.nome }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary w-100">
-                        Filtrar
-                    </button>
-                </div>
-            </form>
+    <div class="stat-card">
+        <div class="stat-icon" style="background: rgba(46, 204, 113, 0.1); color: var(--success, #2ecc71);">✅</div>
+        <div class="stat-content">
+            <h3>{{ eventos|selectattr('status', 'equalto', 'agendado')|list|length }}</h3>
+            <p>Agendados</p>
         </div>
     </div>
 
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card text-white bg-primary">
-                <div class="card-body">
-                    <h5 class="card-title">Total de Eventos</h5>
-                    <h2>{{ eventos|length }}</h2>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-white bg-success">
-                <div class="card-body">
-                    <h5 class="card-title">Agendados</h5>
-                    <h2>{{ eventos|selectattr('status', 'equalto', 'agendado')|list|length }}</h2>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-white bg-warning">
-                <div class="card-body">
-                    <h5 class="card-title">Em Andamento</h5>
-                    <h2>{{ eventos|selectattr('status', 'equalto', 'andamento')|list|length }}</h2>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-white bg-secondary">
-                <div class="card-body">
-                    <h5 class="card-title">Encerrados</h5>
-                    <h2>{{ eventos|selectattr('status', 'equalto', 'encerrado')|list|length }}</h2>
-                </div>
-            </div>
+    <div class="stat-card">
+        <div class="stat-icon" style="background: rgba(241, 194, 5, 0.1); color: var(--warning, #f1c40f);">⏳</div>
+        <div class="stat-content">
+            <h3>{{ eventos|selectattr('status', 'equalto', 'andamento')|list|length }}</h3>
+            <p>Em Andamento</p>
         </div>
     </div>
 
-    <div class="card shadow">
-        <div class="card-header bg-primary text-white">
-            <h5 class="mb-0">Lista de Eventos</h5>
-        </div>
-        <div class="card-body p-0">
-            {% if eventos %}
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th>ID</th>
-                            <th>Nome do Evento</th>
-                            <th>Data/Hora</th>
-                            <th>Sala</th>
-                            <th>Organizador</th>
-                            <th>Inscritos</th>
-                            <th>Status</th>
-                            <th class="text-center">Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for evento in eventos %}
-                        <tr>
-                            <td>{{ evento.id }}</td>
-                            <td><strong>{{ evento.nome_evento }}</strong></td>
-                            <td>{{ evento.data_hora.strftime('%d/%m/%Y %H:%M') }}</td>
-                            <td>{{ evento.sala.nome }}</td>
-                            <td>{{ evento.organizador.nome }}</td>
-                            <td>
-                                <span class="badge bg-info">
-                                    {{ evento.inscricoes|length }} / {{ evento.sala.capacidade }}
-                                </span>
-                            </td>
-                            <td>
-                                {% if evento.status == 'agendado' %}
-                                    <span class="badge bg-success">Agendado</span>
-                                {% elif evento.status == 'andamento' %}
-                                    <span class="badge bg-warning text-dark">Em andamento</span>
-                                {% else %}
-                                    <span class="badge bg-secondary">Encerrado</span>
-                                {% endif %}
-                            </td>
-                            <td class="text-center">
-                                <div class="btn-group btn-group-sm" role="group">
-                                    <a href="{{ url_for('admin.detalhes_evento', evento_id=evento.id) }}" 
-                                       class="btn btn-info" title="Detalhes">
-                                        Detalhes
-                                    </a>
-                                    <a href="{{ url_for('admin.cancelar_evento', evento_id=evento.id) }}" 
-                                       class="btn btn-danger" 
-                                       onclick="return confirm('Deseja realmente cancelar este evento?')"
-                                       title="Cancelar">
-                                        Cancelar
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% else %}
-            <div class="text-center py-5">
-                <p class="text-muted">Nenhum evento encontrado.</p>
-            </div>
-            {% endif %}
+    <div class="stat-card">
+        <div class="stat-icon" style="background: rgba(108, 117, 125, 0.1); color: var(--gray-600, #6c757d);">🛑</div>
+        <div class="stat-content">
+            <h3>{{ eventos|selectattr('status', 'equalto', 'encerrado')|list|length }}</h3>
+            <p>Encerrados</p>
         </div>
     </div>
 </div>
+
+<div class="section-surface mb-4">
+    <h2 class="section-title h5 mb-3">🔍 Filtrar Eventos</h2>
+    <form method="GET" class="row g-3 align-items-end">
+        <div class="col-md-4">
+            <label class="form-label text-muted small fw-bold">Buscar</label>
+            <input type="text" name="busca" class="form-control" placeholder="Nome do evento..." value="{{ request.args.get('busca', '') }}" style="background: var(--black, #0e001b); color: var(--gray-500, #a0aec0); border-color: var(--gray-200, #030303);">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label text-muted small fw-bold">Status</label>
+            <select name="status" class="form-select" style="background-color: var(--black, #0e001b); color: var(--gray-500, #a0aec0); border-color: var(--gray-200, #030303);">
+                <option value="">Todos os status</option>
+                <option value="agendado" {% if request.args.get('status') == 'agendado' %}selected{% endif %}>Agendados</option>
+                <option value="andamento" {% if request.args.get('status') == 'andamento' %}selected{% endif %}>Em andamento</option>
+                <option value="encerrado" {% if request.args.get('status') == 'encerrado' %}selected{% endif %}>Encerrados</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label text-muted small fw-bold">Organizador</label>
+            <select name="organizador" class="form-select" style="background-color: var(--black, #0e001b); color: var(--gray-500, #a0aec0); border-color: var(--gray-200, #030303);">
+                <option value="">Todos organizadores</option>
+                {% for org in organizadores %}
+                <option value="{{ org.id }}" {% if request.args.get('organizador') == org.id|string %}selected{% endif %}>
+                    {{ org.nome }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100" style="background: linear-gradient(135deg, var(--primary, #667eea) 0%, var(--primary-dark, #5a67d8) 100%); border: none;">
+                Filtrar
+            </button>
+        </div>
+    </form>
+</div>
+
+<div class="section-surface">
+    <div class="section-header mb-3">
+        <h2 class="section-title h5 mb-0">📋 Lista Completa de Eventos</h2>
+    </div>
+    
+    <div class="card-body p-0">
+        {% if eventos %}
+        <div class="table-responsive">
+            <table class="table custom-table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nome do Evento</th>
+                        <th>Data/Hora</th>
+                        <th>Sala</th>
+                        <th>Organizador</th>
+                        <th>Inscritos</th>
+                        <th>Status</th>
+                        <th class="text-center">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for evento in eventos %}
+                    <tr>
+                        <td class="text-muted fw-bold">#{{ evento.id }}</td>
+                        <td><strong style="color: var(--gray-700, #556177);">{{ evento.nome_evento }}</strong></td>
+                        <td>
+                            {# CORREÇÃO AQUI: Verificando se a data não é nula antes de formatar #}
+                            {% if evento.data_hora %}
+                                <span class="date-badge">{{ evento.data_hora.strftime('%d/%m/%Y %H:%M') }}</span>
+                            {% else %}
+                                <span class="text-danger small fw-bold">Não definida</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-muted">{{ evento.sala.nome }}</td>
+                        <td class="text-muted">{{ evento.organizador.nome if evento.organizador else 'Sistema' }}</td>
+                        <td>
+                            <span class="badge" style="background: rgba(102, 126, 234, 0.1); color: var(--primary, #667eea); font-size: 0.85rem;">
+                                {{ evento.inscricoes|length }} / {{ evento.sala.capacidade }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if evento.status == 'agendado' %}
+                                <span class="badge" style="background: rgba(46, 204, 113, 0.1); color: #2ecc71;">Agendado</span>
+                            {% elif evento.status == 'andamento' %}
+                                <span class="badge" style="background: rgba(241, 194, 5, 0.1); color: #f1c40f;">Em andamento</span>
+                            {% else %}
+                                <span class="badge" style="background: rgba(108, 117, 125, 0.1); color: #6c757d;">Encerrado</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <div class="btn-group btn-group-sm" role="group">
+                                <a href="{{ url_for('admin.detalhes_evento', evento_id=evento.id) }}" 
+                                   class="btn btn-outline-info" title="Detalhes" style="border-color: rgba(52, 152, 219, 0.5);">
+                                    Ver Detalhes
+                                </a>
+                                <a href="{{ url_for('admin.cancelar_evento', evento_id=evento.id) }}" 
+                                   class="btn btn-outline-danger" 
+                                   onclick="return confirm('Deseja realmente cancelar este evento?')"
+                                   title="Cancelar" style="border-color: rgba(231, 76, 60, 0.5);">
+                                    Cancelar
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <p class="text-muted mb-0">Nenhum evento encontrado com os filtros atuais.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    /* === ESTILOS IMPORTADOS DO DASHBOARD === */
+    .dashboard-title {
+        font-weight: 800;
+        background: linear-gradient(135deg, var(--primary, #667eea) 0%, var(--secondary, #764ba2) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        letter-spacing: -0.5px;
+        margin-bottom: 0.25rem;
+    }
+    
+    .dashboard-subtitle {
+        color: var(--gray-600, #718096);
+        font-weight: 500;
+        margin-bottom: 0;
+    }
+
+    .section-title {
+        color: var(--gray-700, #4a5568);
+        font-weight: 700;
+    }
+
+    /* === CARDS DE ESTATÍSTICAS === */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .stat-card {
+        background: var(--black, #0e001b);
+        padding: 1.5rem;
+        border-radius: var(--radius-lg, 16px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+        border: 1px solid var(--gray-200, #030303);
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+        transition: transform var(--transition-base, 0.3s ease), box-shadow var(--transition-base, 0.3s ease);
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 25px rgba(0, 0, 0, 0.08);
+    }
+    
+    .stat-icon {
+        font-size: 1.75rem;
+        width: 56px;
+        height: 56px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: var(--radius-md, 12px);
+    }
+
+    .stat-content h3 {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--gray-700, #556177);
+    }
+
+    .stat-content p {
+        margin: 0;
+        font-size: 0.875rem;
+        color: var(--gray-500, #a0aec0);
+        font-weight: 600;
+    }
+
+    /* === SEÇÕES E TABELAS === */
+    .section-surface {
+        background: var(--white, #0e001b);
+        border-radius: var(--radius-lg, 16px);
+        padding: 1.75rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+        border: 1px solid var(--gray-200, #000000);
+    }
+
+    .custom-table th {
+        font-size: 0.8125rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--gray-500, #a0aec0);
+        border-bottom: 2px solid var(--gray-200, #0e001b);
+        padding-bottom: 1rem;
+        background-color: transparent !important;
+    }
+
+    .custom-table td {
+        padding: 1rem 0.5rem;
+        border-bottom: 1px solid var(--gray-200, #000000);
+        color: var(--gray-700, #4a5568);
+    }
+
+    .custom-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .custom-table tbody tr {
+        transition: background-color 0.2s ease;
+    }
+
+    .custom-table tbody tr:hover {
+        background-color: rgba(255, 255, 255, 0.02);
+    }
+
+    .date-badge {
+        background: var(--gray-100, #0e001b);
+        padding: 0.4rem 0.75rem;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: var(--gray-600, #718096);
+        border: 1px solid var(--gray-200, #000000);
+    }
+
+    /* Ajuste para inputs do filtro ficarem bonitos */
+    .form-control:focus, .form-select:focus {
+        background-color: var(--black, #0e001b);
+        color: var(--gray-500, #a0aec0);
+        border-color: var(--primary, #667eea);
+        box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
+    }
+</style>
 {% endblock %}

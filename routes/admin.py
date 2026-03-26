@@ -4,6 +4,7 @@ Dashboard e gerenciamento do sistema
 """
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import current_user
+from sqlalchemy import nullslast # <-- Importação movida para o topo!
 from extensions import db
 from models.user import Usuario
 from models.sala import Sala
@@ -94,7 +95,6 @@ def usuarios():
 
 @admin_bp.route('/usuarios/<int:user_id>/alternar-status', methods=['POST'])
 @role_required('admin')
-
 def alternar_status_usuario(user_id):
     """
     Ativar/desativar usuário
@@ -122,7 +122,6 @@ def alternar_status_usuario(user_id):
 
 @admin_bp.route('/cpfs-autorizados')
 @role_required('admin')
-
 def cpfs_autorizados():
     """
     Gerenciar CPFs pré-autorizados
@@ -150,7 +149,6 @@ def cpfs_autorizados():
 
 @admin_bp.route('/cpfs-autorizados/adicionar', methods=['GET', 'POST'])
 @role_required('admin')
-
 def adicionar_cpf_autorizado():
     """
     Adicionar novo CPF autorizado
@@ -180,7 +178,6 @@ def adicionar_cpf_autorizado():
 
 @admin_bp.route('/cpfs-autorizados/<int:cpf_id>/desativar', methods=['POST'])
 @role_required('admin')
-
 def desativar_cpf_autorizado(cpf_id):
     """
     Desativar CPF autorizado
@@ -198,7 +195,6 @@ def desativar_cpf_autorizado(cpf_id):
 
 @admin_bp.route('/cpfs-autorizados/<int:cpf_id>/reativar', methods=['POST'])
 @role_required('admin')
-
 def reativar_cpf_autorizado(cpf_id):
     """
     Reativar CPF autorizado
@@ -216,7 +212,6 @@ def reativar_cpf_autorizado(cpf_id):
 
 @admin_bp.route('/salas')
 @role_required('admin')
-
 def salas():
     """
     Gerenciar salas
@@ -227,7 +222,6 @@ def salas():
 
 @admin_bp.route('/salas/adicionar', methods=['GET', 'POST'])
 @role_required('admin')
-
 def adicionar_sala():
     """
     Adicionar nova sala
@@ -344,5 +338,65 @@ def eventos():
     """
     Listar todos os eventos (visão geral)
     """
-    eventos = Evento.query.order_by(Evento.data_hora.desc()).all()
-    return render_template('admin/eventos.html', eventos=eventos)
+    # Filtros recebidos da URL
+    busca = request.args.get('busca', '').strip()
+    status = request.args.get('status', '')
+    organizador_id = request.args.get('organizador', '')
+
+    query = Evento.query
+
+    if busca:
+        query = query.filter(Evento.nome_evento.ilike(f'%{busca}%'))
+    if status:
+        query = query.filter(Evento.status == status)
+    if organizador_id:
+        query = query.filter(Evento.organizador_id == organizador_id)
+
+    # Ordena com os nulos por último
+    eventos = query.order_by(nullslast(Evento.data_hora.desc())).all()
+    
+    # Busca organizadores para preencher o select
+    organizadores = Usuario.query.filter_by(tipo='organizador').all()
+
+    return render_template(
+        'admin/eventos.html', 
+        eventos=eventos,
+        organizadores=organizadores
+    )
+
+
+# --- ADICIONEI ESTAS DUAS ROTAS ABAIXO PARA RESOLVER O BUILDERROR --- #
+
+@admin_bp.route('/eventos/<int:evento_id>')
+@role_required('admin')
+def detalhes_evento(evento_id):
+    """
+    Ver detalhes de um evento específico
+    """
+    evento = Evento.query.get_or_404(evento_id)
+    inscricoes = Inscricao.query.filter_by(evento_id=evento_id).all()
+    
+    return render_template(
+        'admin/detalhes_evento.html', 
+        evento=evento, 
+        inscricoes=inscricoes
+    )
+
+
+@admin_bp.route('/eventos/<int:evento_id>/cancelar')
+@role_required('admin')
+def cancelar_evento(evento_id):
+    """
+    Cancelar/Encerrar um evento
+    """
+    evento = Evento.query.get_or_404(evento_id)
+    
+    try:
+        evento.status = 'encerrado'
+        db.session.commit()
+        flash(f'✅ Evento "{evento.nome_evento}" foi encerrado com sucesso.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'❌ Erro ao cancelar evento: {str(e)}', 'error')
+        
+    return redirect(url_for('admin.eventos'))
