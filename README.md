@@ -15,7 +15,7 @@
   <img src="https://img.shields.io/badge/projeto-acadêmico%20%2F%20pessoal-blue" />
 </p>
 
-> **Nota:** Aplicação hospedada em plano gratuito. O servidor entra em modo de espera após inatividade, portanto, o primeiro acesso pode levar até 1 minuto para carregar.
+ **Nota:** **Aplicação hospedada em plano gratuito.** **O servidor entra em modo de espera após inatividade, portanto, o primeiro acesso pode levar até 1 minuto para carregar.**
 
 ---
 
