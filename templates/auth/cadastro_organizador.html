@@ -10,6 +10,7 @@
         </div>
 
         <form method="POST" action="{{ url_for('auth.cadastro_organizador') }}" class="auth-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="form-group">
                 <label for="cpf">CPF Autorizado *</label>
                 <input 
@@ -46,6 +47,7 @@
                     class="form-control" 
                     placeholder="Mínimo 6 caracteres"
                     minlength="6"
+                    autocomplete="new-password"
                     required
                 >
             </div>
@@ -59,6 +61,7 @@
                     class="form-control" 
                     placeholder="Digite a senha novamente"
                     minlength="6"
+                    autocomplete="new-password"
                     required
                 >
             </div>

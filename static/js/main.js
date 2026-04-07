@@ -119,7 +119,7 @@ const Alerts = (function () {
 
 
 /* ============================================================
-   3. NAVBAR — scroll shadow + active link
+   3. NAVBAR — active link & sticky shadow
    ============================================================ */
 (function initNavbar() {
     const navbar = document.querySelector('.navbar');
@@ -128,12 +128,11 @@ const Alerts = (function () {
     // Realce ao rolar
     const onScroll = () => {
         const scrolled = window.scrollY > 12;
-        navbar.style.background     = scrolled
-            ? 'rgba(7, 6, 15, 0.92)'
-            : 'rgba(12, 11, 26, 0.82)';
-        navbar.style.boxShadow      = scrolled
-            ? '0 4px 24px rgba(0,0,0,0.5), 0 0 40px rgba(124,58,237,0.08)'
-            : '';
+        if (scrolled) {
+            navbar.style.boxShadow = 'var(--shadow-md)';
+        } else {
+            navbar.style.boxShadow = 'var(--shadow-sm)';
+        }
     };
 
     window.addEventListener('scroll', onScroll, { passive: true });
@@ -573,57 +572,8 @@ const Modal = (function () {
 
 
 /* ============================================================
-   9. GLOW CURSOR — rastro roxo sutil no mouse
+   9. GLOW CURSOR — removido
    ============================================================ */
-(function initGlowCursor() {
-    const isMobile = window.matchMedia('(pointer: coarse)').matches;
-    if (isMobile) return;
-
-    const dot = document.createElement('div');
-    Object.assign(dot.style, {
-        position:        'fixed',
-        width:           '10px',
-        height:          '10px',
-        borderRadius:    '50%',
-        background:      'rgba(124,58,237,0.7)',
-        boxShadow:       '0 0 12px 4px rgba(124,58,237,0.35)',
-        pointerEvents:   'none',
-        zIndex:          '99999',
-        transform:       'translate(-50%,-50%)',
-        transition:      'width 150ms ease, height 150ms ease, opacity 150ms ease',
-        mixBlendMode:    'screen',
-    });
-
-    document.body.appendChild(dot);
-
-    let cx = 0, cy = 0, tx = 0, ty = 0;
-    let raf;
-
-    window.addEventListener('mousemove', e => { tx = e.clientX; ty = e.clientY; });
-
-    function loop() {
-        cx += (tx - cx) * 0.18;
-        cy += (ty - cy) * 0.18;
-        dot.style.left = cx + 'px';
-        dot.style.top  = cy + 'px';
-        raf = requestAnimationFrame(loop);
-    }
-
-    loop();
-
-    // Engrandecer ao passar em elementos interativos
-    document.addEventListener('mouseover', e => {
-        if (e.target.closest('a, button, .btn, .nav-link, .card, input, select, textarea')) {
-            Object.assign(dot.style, { width: '20px', height: '20px', opacity: '0.5' });
-        } else {
-            Object.assign(dot.style, { width: '10px', height: '10px', opacity: '1' });
-        }
-    });
-
-    // Sumir quando sair da janela
-    document.addEventListener('mouseleave', () => { dot.style.opacity = '0'; });
-    document.addEventListener('mouseenter', () => { dot.style.opacity = '1'; });
-})();
 
 
 /* ============================================================
@@ -708,6 +658,10 @@ const Modal = (function () {
     });
 })();
 
+
+/* ============================================================
+   13. THEME TOGGLE — Movido para base.html para maior estabilidade
+   ============================================================ */
 
 /* ============================================================
    EXPORTS — API pública

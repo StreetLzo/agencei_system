@@ -85,6 +85,7 @@
 
                             {% if item.pode_excluir %}
                             <form method="POST" action="{{ url_for('organizador.excluir_evento', evento_id=item.evento.id) }}" style="display: inline;" onsubmit="return confirm('Tem certeza que deseja excluir este evento?')">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit" class="btn btn-sm btn-danger">Excluir</button>
                             </form>
                             {% endif %}

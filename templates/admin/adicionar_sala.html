@@ -10,6 +10,7 @@
 
 <div class="form-container">
     <form method="POST" action="{{ url_for('admin.adicionar_sala') }}" class="form-card">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="form-group">
             <label for="nome">Nome da Sala *</label>
             <input 

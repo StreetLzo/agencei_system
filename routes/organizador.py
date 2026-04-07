@@ -2,9 +2,9 @@
 Blueprint: Organizador
 Gerenciamento de eventos e salas por organizadores
 """
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import current_user
-from extensions import db
+from extensions import db, csrf
 from models.sala import Sala
 from models.evento import Evento
 from models.inscricao import Inscricao
@@ -132,9 +132,9 @@ def reservar_sala(sala_id):
             flash(f'✅ Evento "{nome_evento}" criado com sucesso!', 'success')
             return redirect(url_for('organizador.minhas_reservas'))
             
-        except Exception as e:
+        except Exception:
             db.session.rollback()
-            flash(f'❌ Erro ao criar evento: {str(e)}', 'error')
+            flash('❌ Erro ao criar evento.', 'error')
             return render_template('organizador/reservar_sala.html', sala=sala)
     
     # GET - mostrar formulário
@@ -363,9 +363,9 @@ def editar_evento(evento_id):
             return redirect(
                 url_for('organizador.detalhes_evento', evento_id=evento.id)
             )
-        except Exception as e:
+        except Exception:
             db.session.rollback()
-            flash(f'❌ Erro ao atualizar evento: {str(e)}', 'error')
+            flash('❌ Erro ao atualizar evento.', 'error')
 
     # GET
     return render_template(
@@ -380,16 +380,14 @@ def editar_evento(evento_id):
 @role_required('organizador')
 def excluir_evento(evento_id):
     """
-    Excluir evento
+    Soft-delete: marca evento como cancelado em vez de apagar
     """
     evento = Evento.query.get_or_404(evento_id)
     
-    # Verificar permissão
     if evento.organizador_id != current_user.id:
         flash('❌ Você não tem permissão para excluir este evento.', 'error')
         return redirect(url_for('organizador.minhas_reservas'))
     
-    # Verificar se pode excluir
     if not evento.pode_ser_excluido():
         flash('❌ Não é possível excluir eventos que já ocorreram.', 'error')
         return redirect(url_for('organizador.minhas_reservas'))
@@ -397,12 +395,12 @@ def excluir_evento(evento_id):
     nome_evento = evento.nome_evento
     
     try:
-        db.session.delete(evento)
+        evento.status = 'cancelado'
         db.session.commit()
-        flash(f'✅ Evento "{nome_evento}" excluído com sucesso.', 'success')
-    except Exception as e:
+        flash(f'✅ Evento "{nome_evento}" cancelado com sucesso.', 'success')
+    except Exception:
         db.session.rollback()
-        flash(f'❌ Erro ao excluir evento: {str(e)}', 'error')
+        flash('❌ Erro ao cancelar evento.', 'error')
     
     return redirect(url_for('organizador.minhas_reservas'))
 
@@ -433,26 +431,50 @@ def gerar_link_inscricao(evento_id):
 @role_required('organizador')
 def cancelar_evento(evento_id):
     """
-    Cancelar (excluir) um evento
+    Soft-delete: marca evento como cancelado (POST only)
     """
     evento = Evento.query.get_or_404(evento_id)
 
-    # Verificar permissão
     if evento.organizador_id != current_user.id:
         flash('❌ Você não tem permissão para cancelar este evento.', 'error')
         return redirect(url_for('organizador.minhas_reservas'))
 
-    # Não permitir cancelar eventos já ocorridos
     if evento.ja_terminou():
         flash('❌ Não é possível cancelar eventos que já ocorreram.', 'error')
         return redirect(url_for('organizador.detalhes_evento', evento_id=evento.id))
 
     try:
-        db.session.delete(evento)
+        evento.status = 'cancelado'
         db.session.commit()
         flash('✅ Evento cancelado com sucesso.', 'success')
-    except Exception as e:
+    except Exception:
         db.session.rollback()
-        flash(f'❌ Erro ao cancelar evento: {str(e)}', 'error')
+        flash('❌ Erro ao cancelar evento.', 'error')
 
     return redirect(url_for('organizador.minhas_reservas'))
+
+
+# ================================================================
+#  API endpoint para QR Code Dinâmico (TOTP)
+# ================================================================
+@organizador_bp.route('/reservas/<int:evento_id>/totp-token', methods=['GET'])
+@role_required('organizador')
+@csrf.exempt
+def totp_token(evento_id):
+    """
+    Retorna o token TOTP atual do evento em JSON.
+    O frontend do organizador faz polling a cada 5s para atualizar o QR.
+    """
+    evento = Evento.query.get_or_404(evento_id)
+
+    if evento.organizador_id != current_user.id:
+        return jsonify({'error': 'Sem permissão'}), 403
+
+    token, segundos_restantes = evento.gerar_token_temporal()
+
+    return jsonify({
+        'evento_id': evento.id,
+        'token': token,
+        'segundos_restantes': segundos_restantes,
+        'qr_payload': f'{evento.id}:{token}'
+    })

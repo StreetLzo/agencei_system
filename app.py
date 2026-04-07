@@ -4,7 +4,7 @@ Arquivo principal da aplicação
 """
 from flask import Flask, redirect, url_for
 from config import Config
-from extensions import db, login_manager
+from extensions import db, login_manager, csrf, limiter
 
 
 def create_app(config_class=Config):
@@ -18,6 +18,8 @@ def create_app(config_class=Config):
     # Inicializar extensões
     db.init_app(app)
     login_manager.init_app(app)
+    csrf.init_app(app)
+    limiter.init_app(app)
 
     # Configurar Flask-Login
     login_manager.login_view = 'auth.login'
@@ -52,7 +54,7 @@ def create_app(config_class=Config):
     @login_manager.user_loader
     def load_user(user_id):
         from models.user import Usuario
-        return Usuario.query.get(int(user_id))
+        return db.session.get(Usuario, int(user_id))
 
     return app
 

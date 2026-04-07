@@ -26,7 +26,7 @@
     transform: translate(-50%, -50%);
     width: 250px;
     height: 250px;
-    border: 3px solid #00ff00;
+    border: 3px solid var(--success, #00ff00);
     border-radius: 12px;
     pointer-events: none;
     animation: pulse 2s infinite;
@@ -46,18 +46,18 @@
 }
 
 .scan-status.waiting {
-    background: #e3f2fd;
-    color: #1976d2;
+    background: var(--info-bg, #e3f2fd);
+    color: var(--info-text, #1976d2);
 }
 
 .scan-status.success {
-    background: #e8f5e9;
-    color: #388e3c;
+    background: var(--success-bg, #e8f5e9);
+    color: var(--success-text, #388e3c);
 }
 
 .scan-status.error {
-    background: #ffebee;
-    color: #d32f2f;
+    background: var(--danger-bg, #ffebee);
+    color: var(--danger-text, #d32f2f);
 }
 </style>
 {% endblock %}
@@ -65,7 +65,7 @@
 {% block content %}
 <div class="page-header">
     <h1>Confirmar Presença</h1>
-    <p>Escaneie o QR Code exibido no evento</p>
+    <p>Escaneie o QR Code dinâmico exibido pelo organizador</p>
 </div>
 
 <div class="qr-scanner-container">
@@ -82,14 +82,14 @@
         <h3>Instruções:</h3>
         <ol>
             <li>Permita o acesso à câmera quando solicitado</li>
-            <li>Aponte a câmera para o QR Code do evento</li>
+            <li>Aponte a câmera para o QR Code <strong>dinâmico</strong> exibido pelo organizador</li>
             <li>Aguarde a confirmação automática</li>
         </ol>
 
         <div class="alert alert-info">
             <strong>Importante:</strong>
             <ul>
-                <li>Você só pode confirmar presença durante o evento</li>
+                <li>O QR Code muda a cada 30 segundos — escaneie rapidamente!</li>
                 <li>Janela de check-in: 30 min antes até 30 min depois</li>
                 <li>É necessário estar inscrito no evento</li>
             </ul>
@@ -100,16 +100,30 @@
         <details>
             <summary style="cursor: pointer; font-weight: bold;">Opção Manual (se a câmera não funcionar)</summary>
             <form method="POST" action="{{ url_for('aluno.confirmar_presenca') }}" style="margin-top: 15px;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="form-group">
-                    <label for="qr_code_lido">Código do QR Code:</label>
+                    <label for="evento_id_manual">ID do Evento:</label>
                     <input 
-                        type="text" 
-                        id="qr_code_lido" 
-                        name="qr_code_lido" 
+                        type="number" 
+                        id="evento_id_manual" 
+                        name="evento_id" 
                         class="form-control"
-                        placeholder="Cole o código aqui"
+                        placeholder="Ex: 5"
                         required
                     >
+                </div>
+                <div class="form-group">
+                    <label for="totp_token_manual">Código Temporal:</label>
+                    <input 
+                        type="text" 
+                        id="totp_token_manual" 
+                        name="totp_token" 
+                        class="form-control"
+                        placeholder="Ex: A3F1B2C4"
+                        maxlength="8"
+                        required
+                    >
+                    <small class="text-muted">Código de 8 caracteres exibido abaixo do QR Code do organizador</small>
                 </div>
                 <button type="submit" class="btn btn-primary btn-block">
                     Confirmar Presença
@@ -161,38 +175,67 @@ function startScanning() {
     });
 }
 
-function validarQRCode(qrCode) {
+function validarQRCode(qrPayload) {
     statusDiv.className = 'scan-status waiting';
     statusDiv.textContent = 'Validando código...';
+
+    // O QR Code dinâmico codifica "evento_id:totp_token"
+    const parts = qrPayload.split(':');
+    if (parts.length !== 2) {
+        statusDiv.className = 'scan-status error';
+        statusDiv.textContent = 'QR Code com formato inválido.';
+        setTimeout(() => { scanning = true; statusDiv.className = 'scan-status waiting'; statusDiv.textContent = 'Posicione o QR Code dentro do quadrado'; }, 3000);
+        return;
+    }
+
+    const eventoId = parts[0];
+    const totpToken = parts[1];
 
     fetch('{{ url_for("aluno.validar_qr") }}', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token() }}'
         },
-        body: JSON.stringify({ qr_code: qrCode })
+        body: JSON.stringify({ evento_id: parseInt(eventoId), totp_token: totpToken })
     })
     .then(response => response.json())
     .then(data => {
         if (data.valido) {
             statusDiv.className = 'scan-status success';
             statusDiv.innerHTML = `
-                <strong>QR Code válido!</strong><br>
+                <strong>✅ QR Code válido!</strong><br>
                 Evento: ${data.evento.nome}<br>
                 Confirmando presença...
             `;
             
+            // Vibrar e tocar som para feedback
+            if (navigator.vibrate) navigator.vibrate([200]);
+            playSuccessBeep();
+
             setTimeout(() => {
                 const form = document.createElement('form');
                 form.method = 'POST';
                 form.action = '{{ url_for("aluno.confirmar_presenca") }}';
                 
-                const input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = 'qr_code_lido';
-                input.value = qrCode;
+                const csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = 'csrf_token';
+                csrfInput.value = '{{ csrf_token() }}';
+                form.appendChild(csrfInput);
+
+                const idInput = document.createElement('input');
+                idInput.type = 'hidden';
+                idInput.name = 'evento_id';
+                idInput.value = eventoId;
+                form.appendChild(idInput);
+
+                const tokenInput = document.createElement('input');
+                tokenInput.type = 'hidden';
+                tokenInput.name = 'totp_token';
+                tokenInput.value = totpToken;
+                form.appendChild(tokenInput);
                 
-                form.appendChild(input);
                 document.body.appendChild(form);
                 form.submit();
             }, 2000);
@@ -215,6 +258,30 @@ function validarQRCode(qrCode) {
             statusDiv.textContent = 'Posicione o QR Code dentro do quadrado';
         }, 3000);
     });
+}
+
+// Síntese de aúdio para feedback sonoro (sem dependências externas)
+function playSuccessBeep() {
+    try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // Nota A5
+        oscillator.frequency.exponentialRampToValueAtTime(1760, audioCtx.currentTime + 0.1); // A6
+        
+        gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+        
+        oscillator.start(audioCtx.currentTime);
+        oscillator.stop(audioCtx.currentTime + 0.1);
+    } catch(e) {
+        console.warn('Erro ao reproduzir som:', e);
+    }
 }
 </script>
 {% endblock %}

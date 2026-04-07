@@ -81,6 +81,7 @@
                         ✏️ Editar
                     </a>
                     <form method="POST" action="{{ url_for('admin.alternar_status_sala', sala_id=sala.id) }}" class="flex-grow-1 m-0">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <button type="submit" class="btn btn-sm w-100 {% if sala.ativa %}btn-outline-warning{% else %}btn-outline-success{% endif %}" style="border-color: rgba(255, 255, 255, 0.1);">
                             {% if sala.ativa %}🔒 Desativar{% else %}🔓 Ativar{% endif %}
                         </button>
@@ -91,11 +92,19 @@
         {% endfor %}
     {% else %}
         <div class="col-12">
-            <div class="empty-state-card text-center py-5 section-surface">
-                <div style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;">🏢</div>
-                <h3 style="color: var(--gray-700, #556177);">Nenhuma sala cadastrada</h3>
+            <div class="empty-state-card text-center py-5 section-surface" style="background: var(--white, #ffffff); border-radius: var(--radius-lg, 16px);">
+                <div class="mb-4 text-muted" style="opacity: 0.5;">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect>
+                        <line x1="9" y1="22" x2="15" y2="22"></line>
+                        <circle cx="12" cy="11" r="3"></circle>
+                        <line x1="12" y1="14" x2="12" y2="17"></line>
+                        <path d="M8 6h.01M16 6h.01M8 18h.01M16 18h.01"></path>
+                    </svg>
+                </div>
+                <h3 style="color: var(--gray-700, #4a5568); font-weight: 600;">Nenhuma sala cadastrada</h3>
                 <p class="text-muted mb-4">Você ainda não adicionou nenhum espaço físico ao sistema.</p>
-                <a href="{{ url_for('admin.adicionar_sala') }}" class="btn btn-primary" style="background: linear-gradient(135deg, var(--primary, #667eea) 0%, var(--primary-dark, #5a67d8) 100%); border: none;">
+                <a href="{{ url_for('admin.adicionar_sala') }}" class="btn btn-primary" style="background: linear-gradient(135deg, var(--primary, #6c5ce7) 0%, var(--primary-dark, #5a4fcf) 100%); border: none;">
                     ➕ Adicionar Primeira Sala
                 </a>
             </div>

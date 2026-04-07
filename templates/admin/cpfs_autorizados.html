@@ -28,6 +28,7 @@
         </div>
         <div class="card-body">
             <form method="POST" action="{{ url_for('admin.adicionar_cpf_autorizado') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="form-row">
                     <div class="form-group col-md-4">
                         <label>CPF (apenas números)</label>
@@ -85,10 +86,12 @@
                         <td class="text-center">
                             {% if u.ativo %}
                                 <form method="POST" action="{{ url_for('admin.desativar_cpf_autorizado', cpf_id=u.id) }}" style="display:inline;">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                     <button type="submit" class="btn btn-sm btn-danger">Desativar</button>
                                 </form>
                             {% else %}
                                 <form method="POST" action="{{ url_for('admin.reativar_cpf_autorizado', cpf_id=u.id) }}" style="display:inline;">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                     <button type="submit" class="btn btn-sm btn-success">Ativar</button>
                                 </form>
                             {% endif %}

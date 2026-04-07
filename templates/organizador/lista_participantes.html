@@ -17,18 +17,29 @@
             </p>
         </div>
 
+        <!-- QR Code Dinâmico (TOTP) -->
         <div class="card mb-4">
             <div class="card-header">
-                <h3 class="mb-0">QR Code para Confirmação de Presença</h3>
+                <h3 class="mb-0">🔐 QR Code Dinâmico para Presença</h3>
             </div>
             <div class="card-body text-center">
-                <p class="mb-4">Os participantes devem escanear este código durante o evento</p>
+                <p class="mb-2">Os participantes devem escanear este código <strong>em tempo real</strong>.</p>
+                <p class="text-muted mb-4" style="font-size: 0.85rem;">O código muda a cada 30 segundos para impedir compartilhamento.</p>
+
                 <div class="qr-container">
-                    <div id="qrcode"></div>
-                    <div style="margin-top: 1rem; font-family: monospace; font-size: 0.875rem; font-weight: 600; color: var(--gray-700); padding: 0.5rem 1rem; background: var(--gray-100); border-radius: var(--radius-md); display: inline-block;">
-                        {{ evento.qr_code_link }}
+                    <div id="qrcode" style="display:inline-block;"></div>
+                    <div style="margin-top: 1rem;">
+                        <span style="font-family: monospace; font-size: 1.5rem; font-weight: 700; letter-spacing: 3px; color: var(--primary, #6c5ce7); padding: 0.5rem 1.5rem; background: var(--gray-100, #f0f0f0); border-radius: var(--radius-md, 8px); display: inline-block;"
+                              id="totp-display">--------</span>
+                    </div>
+                    <div style="margin-top: 0.75rem;">
+                        <div style="background: var(--gray-200, #e0e0e0); border-radius: 4px; height: 6px; width: 200px; margin: 0 auto; overflow: hidden;">
+                            <div id="totp-timer-bar" style="background: var(--primary, #6c5ce7); height: 100%; width: 100%; transform-origin: left; will-change: transform;"></div>
+                        </div>
+                        <small class="text-muted" id="totp-timer-text">Atualiza em 30s</small>
                     </div>
                 </div>
+
                 <div class="alert alert-info mt-4 mb-0">
                     <strong>Janela de confirmação:</strong><br>
                     30 minutos antes do início até 30 minutos após o término do evento
@@ -103,13 +114,64 @@ Nome,CPF,Inscrito em,Status,Check-in realizado em
 
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        new QRCode(document.getElementById("qrcode"), {
-            text: "{{ evento.qr_code_link }}",
-            width: 256,
-            height: 256
-        });
-    });
+    let qrInstance = null;
+    const TOTP_URL = "{{ url_for('organizador.totp_token', evento_id=evento.id) }}";
+    const displayEl = document.getElementById('totp-display');
+    const timerBar = document.getElementById('totp-timer-bar');
+    const timerText = document.getElementById('totp-timer-text');
+    let targetExpirationTime = 0;
+
+    function renderTime() {
+        const agora = Date.now();
+        const restanteMs = targetExpirationTime - agora;
+
+        if (restanteMs > 0) {
+            // Conta os milissegundos fluentemente (30.000 ms = escala 1.0)
+            const escala = Math.max(0, restanteMs / 30000);
+            timerBar.style.transform = `scaleX(${escala})`;
+            timerText.textContent = `Atualiza em ${Math.ceil(restanteMs / 1000)}s`;
+        } else {
+            timerBar.style.transform = `scaleX(0)`;
+            if (targetExpirationTime !== 0) {
+                timerText.textContent = `Atualizando...`;
+            }
+        }
+        
+        requestAnimationFrame(renderTime);
+    }
+    
+    // Inicia o motor gráfico de 60 frames por segundo do navegador para animação local
+    requestAnimationFrame(renderTime);
+
+    function atualizarQR() {
+        fetch(TOTP_URL)
+            .then(r => r.json())
+            .then(data => {
+                // Só atualiza o timer e o QR Code se o token NOVO chegou 
+                // (Isso impede que o tempo fique "engasgando" para a frente e para trás devido ao atraso da internet)
+                if (displayEl.textContent !== data.token) {
+                    // Programa a expiração exata e fluida baseada no novo token
+                    targetExpirationTime = Date.now() + (data.segundos_restantes * 1000);
+                    
+                    displayEl.textContent = data.token;
+                    const container = document.getElementById('qrcode');
+                    container.innerHTML = '';
+                    qrInstance = new QRCode(container, {
+                        text: data.qr_payload,
+                        width: 256,
+                        height: 256
+                    });
+                }
+            })
+            .catch(err => {
+                console.error('Erro ao buscar token TOTP:', err);
+                displayEl.textContent = 'ERRO';
+            });
+    }
+
+    // A cada 3 segundos tenta checar token novo para manter tudo cravado
+    atualizarQR();
+    setInterval(atualizarQR, 3000);
 
     function exportarCSV() {
         const evento = "{{ evento.nome_evento }}";

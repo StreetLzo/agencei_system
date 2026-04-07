@@ -113,9 +113,9 @@ def alternar_status_usuario(user_id):
         db.session.commit()
         status = "ativado" if usuario.ativo else "desativado"
         flash(f'✅ Usuário {usuario.nome} foi {status}.', 'success')
-    except Exception as e:
+    except Exception:
         db.session.rollback()
-        flash(f'❌ Erro ao alterar status: {str(e)}', 'error')
+        flash('❌ Erro ao alterar status do usuário.', 'error')
     
     return redirect(url_for('admin.usuarios'))
 
@@ -257,9 +257,9 @@ def adicionar_sala():
             db.session.commit()
             flash('✅ Sala adicionada com sucesso!', 'success')
             return redirect(url_for('admin.salas'))
-        except Exception as e:
+        except Exception:
             db.session.rollback()
-            flash(f'❌ Erro ao adicionar sala: {str(e)}', 'error')
+            flash('❌ Erro ao adicionar sala.', 'error')
     
     return render_template('admin/adicionar_sala.html')
 
@@ -305,9 +305,9 @@ def editar_sala(sala_id):
             db.session.commit()
             flash('✅ Sala atualizada com sucesso!', 'success')
             return redirect(url_for('admin.salas'))
-        except Exception as e:
+        except Exception:
             db.session.rollback()
-            flash(f'❌ Erro ao atualizar sala: {str(e)}', 'error')
+            flash('❌ Erro ao atualizar sala.', 'error')
     
     return render_template('admin/editar_sala.html', sala=sala)
 
@@ -383,11 +383,11 @@ def detalhes_evento(evento_id):
     )
 
 
-@admin_bp.route('/eventos/<int:evento_id>/cancelar')
+@admin_bp.route('/eventos/<int:evento_id>/cancelar', methods=['POST'])
 @role_required('admin')
 def cancelar_evento(evento_id):
     """
-    Cancelar/Encerrar um evento
+    Cancelar/Encerrar um evento (POST only — protegido contra CSRF)
     """
     evento = Evento.query.get_or_404(evento_id)
     
@@ -395,8 +395,8 @@ def cancelar_evento(evento_id):
         evento.status = 'encerrado'
         db.session.commit()
         flash(f'✅ Evento "{evento.nome_evento}" foi encerrado com sucesso.', 'success')
-    except Exception as e:
+    except Exception:
         db.session.rollback()
-        flash(f'❌ Erro ao cancelar evento: {str(e)}', 'error')
+        flash('❌ Erro ao cancelar evento.', 'error')
         
     return redirect(url_for('admin.eventos'))

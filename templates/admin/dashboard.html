@@ -10,7 +10,7 @@
 
 <div class="stats-grid mb-5">
     <div class="stat-card">
-        <div class="stat-icon" style="background: rgba(102, 126, 234, 0.1); color: var(--primary, #667eea);">👥</div>
+        <div class="stat-icon">👥</div>
         <div class="stat-content">
             <h3>{{ total_usuarios }}</h3>
             <p>Total de Usuários</p>
@@ -18,7 +18,7 @@
     </div>
 
     <div class="stat-card">
-        <div class="stat-icon" style="background: rgba(118, 75, 162, 0.1); color: var(--secondary, #764ba2);">🎓</div>
+        <div class="stat-icon">🎓</div>
         <div class="stat-content">
             <h3>{{ total_alunos }}</h3>
             <p>Alunos</p>
@@ -26,7 +26,7 @@
     </div>
 
     <div class="stat-card">
-        <div class="stat-icon" style="background: rgba(102, 126, 234, 0.1); color: var(--primary, #667eea);">👔</div>
+        <div class="stat-icon">👔</div>
         <div class="stat-content">
             <h3>{{ total_organizadores }}</h3>
             <p>Organizadores</p>
@@ -34,7 +34,7 @@
     </div>
 
     <div class="stat-card">
-        <div class="stat-icon" style="background: rgba(45, 55, 72, 0.1); color: var(--gray-700, #2d3748);">🔑</div>
+        <div class="stat-icon">🔑</div>
         <div class="stat-content">
             <h3>{{ total_admins }}</h3>
             <p>Administradores</p>
@@ -42,7 +42,7 @@
     </div>
 
     <div class="stat-card">
-        <div class="stat-icon" style="background: rgba(52, 152, 219, 0.1); color: #3498db;">🏢</div>
+        <div class="stat-icon">🏢</div>
         <div class="stat-content">
             <h3>{{ total_salas }}</h3>
             <p>Salas</p>
@@ -50,7 +50,7 @@
     </div>
 
     <div class="stat-card">
-        <div class="stat-icon" style="background: rgba(155, 89, 182, 0.1); color: #9b59b6;">📅</div>
+        <div class="stat-icon">📅</div>
         <div class="stat-content">
             <h3>{{ total_eventos }}</h3>
             <p>Eventos</p>
@@ -58,7 +58,7 @@
     </div>
 
     <div class="stat-card">
-        <div class="stat-icon" style="background: rgba(46, 204, 113, 0.1); color: var(--success, #2ecc71);">✅</div>
+        <div class="stat-icon">✅</div>
         <div class="stat-content">
             <h3>{{ total_inscricoes }}</h3>
             <p>Inscrições</p>
@@ -66,7 +66,7 @@
     </div>
 
     <div class="stat-card">
-        <div class="stat-icon" style="background: rgba(241, 194, 5, 0.1); color: var(--warning, #f1c40f);">🎫</div>
+        <div class="stat-icon">🎫</div>
         <div class="stat-content">
             <h3>{{ cpfs_autorizados_disponiveis }}</h3>
             <p>CPFs Livres</p>
@@ -162,7 +162,7 @@
                         <tr>
                             <td>
                                 <div class="d-flex flex-column">
-                                    <strong>{{ inscricao.aluno.nome }}</strong>
+                                    <strong class="text-main">{{ inscricao.aluno.nome }}</strong>
                                     <small class="text-muted">{{ inscricao.evento.nome_evento }}</small>
                                 </div>
                             </td>
@@ -175,7 +175,7 @@
                             </td>
                             <td>
                                 {% set status = inscricao.status_presenca|lower %}
-                                <span class="badge {% if status == 'presente' %}badge-success{% elif status == 'aguardando' %}badge-warning{% else %}badge-secondary{% endif %}">
+                                <span class="badge {% if status == 'presente' %}bg-success{% elif status == 'aguardando' %}bg-warning{% else %}bg-secondary{% endif %}">
                                     {{ inscricao.status_presenca }}
                                 </span>
                             </td>
@@ -191,166 +191,4 @@
         </div>
     </div>
 </div>
-
-<style>
-    /* === TIPOGRAFIA E CABEÇALHO === */
-    .dashboard-title {
-        font-weight: 800;
-        background: linear-gradient(135deg, var(--primary, #667eea) 0%, var(--secondary, #764ba2) 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        letter-spacing: -0.5px;
-    }
-    
-    .dashboard-subtitle {
-        color: var(--gray-600, #718096);
-        font-weight: 500;
-    }
-
-    .section-title {
-        color: var(--gray-700, #4a5568);
-        font-weight: 700;
-    }
-
-    /* === CARDS DE ESTATÍSTICAS === */
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-        gap: 1.5rem;
-    }
-    
-    .stat-card {
-        background: var(--black, #0e001b);
-        padding: 1.5rem;
-        border-radius: var(--radius-lg, 16px);
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
-        border: 1px solid var(--gray-200, #030303);
-        display: flex;
-        align-items: center;
-        gap: 1.25rem;
-        transition: transform var(--transition-base, 0.3s ease), box-shadow var(--transition-base, 0.3s ease);
-    }
-    
-    .stat-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 12px 25px rgba(0, 0, 0, 0.08);
-    }
-    
-    .stat-icon {
-        font-size: 1.75rem;
-        width: 56px;
-        height: 56px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: var(--radius-md, 12px);
-    }
-
-    .stat-content h3 {
-        margin: 0;
-        font-size: 1.5rem;
-        font-weight: 800;
-        color: var(--gray-700, #556177);
-    }
-
-    .stat-content p {
-        margin: 0;
-        font-size: 0.875rem;
-        color: var(--gray-500, #a0aec0);
-        font-weight: 600;
-    }
-
-    .stat-content small {
-        color: var(--gray-400, #cbd5e0);
-    }
-
-    /* === AÇÕES RÁPIDAS (Buscando o estilo dos inputs do Login) === */
-    .actions-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-        gap: 1.25rem;
-    }
-    
-    .action-card {
-        background: var(--white, #0e001b);
-        padding: 1.25rem;
-        border-radius: var(--radius-md, 12px);
-        text-align: center;
-        text-decoration: none;
-        color: var(--gray-600, #718096);
-        border: 2px solid var(--gray-200, #000000);
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-        transition: all var(--transition-base, 0.3s ease);
-    }
-    
-    .action-card:hover {
-        border-color: var(--primary, #667eea);
-        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
-        color: var(--primary, #667eea);
-        transform: translateY(-2px);
-    }
-    
-    .action-icon {
-        font-size: 1.75rem;
-    }
-
-    .action-text {
-        font-weight: 600;
-        font-size: 0.9rem;
-    }
-
-    /* === SEÇÕES E TABELAS === */
-    .section-surface {
-        background: var(--white, #0e001b);
-        border-radius: var(--radius-lg, 16px);
-        padding: 1.75rem;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
-        border: 1px solid var(--gray-200, #000000);
-    }
-
-    .custom-table th {
-        font-size: 0.8125rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: var(--gray-500, #a0aec0);
-        border-bottom: 2px solid var(--gray-200, #0e001b);
-        padding-bottom: 1rem;
-    }
-
-    .custom-table td {
-        padding: 1rem 0.5rem;
-        border-bottom: 1px solid var(--gray-200, #000000);
-        color: var(--gray-700, #4a5568);
-    }
-
-    .custom-table tr:last-child td {
-        border-bottom: none;
-    }
-
-    .date-badge {
-        background: var(--gray-100, #0e001b);
-        padding: 0.4rem 0.75rem;
-        border-radius: 6px;
-        font-size: 0.85rem;
-        font-weight: 500;
-        color: var(--gray-600, #718096);
-        border: 1px solid var(--gray-200, #000000);
-    }
-
-    .btn-link-custom {
-        color: var(--primary, #667eea);
-        font-weight: 600;
-        text-decoration: none;
-        font-size: 0.875rem;
-        transition: color var(--transition-fast, 0.2s);
-    }
-
-    .btn-link-custom:hover {
-        color: var(--primary-dark, #5a67d8);
-        text-decoration: underline;
-    }
-</style>
 {% endblock %}

@@ -176,6 +176,7 @@
                         <form method="POST"
                               action="{{ url_for('aluno.cancelar_inscricao', evento_id=evento.id) }}"
                               onsubmit="return confirm('Tem certeza que deseja cancelar sua inscrição?')">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="btn btn-danger w-100">
                                 Cancelar inscrição
                             </button>
@@ -184,7 +185,8 @@
 
                 {% else %}
                     {% if vagas_disponiveis > 0 and not evento.ja_terminou() %}
-                        <form method="POST" action="{{ url_for('aluno.inscrever_evento', evento_id=evento.id) }}">
+                        <form method="POST" action="{{ url_for('aluno.confirmar_inscricao', evento_id=evento.id) }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="btn btn-primary w-100 btn-lg">
                                 Inscrever-se no evento
                             </button>

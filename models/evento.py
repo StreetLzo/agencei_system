@@ -5,6 +5,8 @@ Representa os eventos/palestras/atividades agendadas
 from extensions import db
 from datetime import datetime, timedelta, timezone
 import hashlib
+import hmac
+import time
 from sqlalchemy import or_
 
 class Evento(db.Model):
@@ -20,6 +22,7 @@ class Evento(db.Model):
     data_hora = db.Column(db.DateTime, nullable=True, index=True)
     duracao_horas = db.Column(db.Float, nullable=True)
     qr_code_link = db.Column(db.String(250), unique=True, nullable=False)
+    status = db.Column(db.String(20), default='agendado', nullable=False)
     
     # Relacionamentos
     sala_id = db.Column(db.Integer, db.ForeignKey('sala.id'), nullable=False)
@@ -33,7 +36,7 @@ class Evento(db.Model):
     inscricoes = db.relationship('Inscricao', backref='evento', lazy=True, cascade="all, delete-orphan")
     
     def __repr__(self):
-        return f'<Evento {self.nome_evento} em {self.data_hora.strftime("%d/%m/%Y")}>'
+        return f'<Evento {self.nome_evento} em {self.data_hora.strftime("%d/%m/%Y") if self.data_hora else "N/A"}>'
     
     @property
     def data_hora_fim(self):
@@ -72,7 +75,6 @@ class Evento(db.Model):
         """
         Verifica se está na janela de confirmação de presença
         """
-        # 🔒 EVENTO PERMANENTE: nunca permite confirmação por horário
         if self.data_hora is None:
             return False
         agora = datetime.now()
@@ -87,22 +89,51 @@ class Evento(db.Model):
         Regra: apenas antes do término
         """
         return not self.ja_terminou()
-    
+
+    # ================================================================
+    #  TOTP — Token Temporal para QR Code Anti-Fraude
+    # ================================================================
+    def gerar_token_temporal(self, intervalo_segundos=30):
+        """
+        Gera um token TOTP (Time-based One-Time Password) para o evento.
+        O token muda a cada `intervalo_segundos` segundos.
+        Retorna (token_hex, segundos_restantes).
+        """
+        agora = int(time.time())
+        janela = agora // intervalo_segundos
+        segundos_restantes = intervalo_segundos - (agora % intervalo_segundos)
+
+        # Chave = qr_code_link (segredo estático do evento)
+        chave = self.qr_code_link.encode('utf-8')
+        mensagem = f"{self.id}:{janela}".encode('utf-8')
+
+        token = hmac.new(chave, mensagem, hashlib.sha256).hexdigest()[:8].upper()
+        return token, segundos_restantes
+
+    def validar_token_temporal(self, token_recebido, intervalo_segundos=30, tolerancia=1):
+        """
+        Valida um token TOTP. Aceita a janela atual e `tolerancia` janelas anteriores
+        para compensar atrasos de rede.
+        """
+        agora = int(time.time())
+        for offset in range(tolerancia + 1):
+            janela = (agora // intervalo_segundos) - offset
+            chave = self.qr_code_link.encode('utf-8')
+            mensagem = f"{self.id}:{janela}".encode('utf-8')
+            token_esperado = hmac.new(chave, mensagem, hashlib.sha256).hexdigest()[:8].upper()
+            if hmac.compare_digest(token_recebido.upper(), token_esperado):
+                return True
+        return False
+
     @staticmethod
     def gerar_qr_code(nome_evento, data_hora, sala_id, organizador_id):
         """
         Gera um código QR único e seguro para o evento
         """
-        # Criar string única
         string_base = f"{nome_evento}_{data_hora.isoformat()}_{sala_id}_{organizador_id}"
-        
-        # Gerar hash SHA256
         hash_obj = hashlib.sha256(string_base.encode())
-        hash_code = hash_obj.hexdigest()[:16]  # Primeiros 16 caracteres
-        
-        # Formato final
+        hash_code = hash_obj.hexdigest()[:16]
         qr_code = f"AGENCEI_{hash_code.upper()}"
-        
         return qr_code
     
     def sala_tem_capacidade(self):
@@ -114,7 +145,7 @@ class Evento(db.Model):
     @staticmethod
     def listar_disponiveis(apenas_futuros=True):
         """Lista eventos disponíveis para inscrição"""
-        query = Evento.query
+        query = Evento.query.filter(Evento.status != 'cancelado')
         
         if apenas_futuros:
             agora = datetime.now(timezone.utc) 

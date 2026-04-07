@@ -4,19 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}AGENCEI{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     {% block extra_css %}{% endblock %}
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
-    <link rel="icon"
-      type="image/png"
-      sizes="32x32"
-      href="{{ url_for('static', filename='favicon.png') }}">
-      <link rel="icon" type="image/x-icon"
-    
-
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon.png') }}">
+    <script>
+        // Anti-flicker do tema
+        const savedTheme = localStorage.getItem("theme");
+        if (savedTheme === "dark" || (!savedTheme && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+            document.documentElement.setAttribute("data-theme", "dark");
+        }
+    </script>
 </head>
-<body>
+<body data-user-type="{{ current_user.tipo if current_user.is_authenticated else 'guest' }}">
     <!-- Header/Navbar -->
     <header class="navbar">
         <div class="container">
@@ -32,7 +36,8 @@
             </div>
             
             {% if current_user.is_authenticated %}
-            <nav class="navbar-menu">
+            <!-- NAV DESKTOP -->
+            <nav class="navbar-menu desktop-nav">
                 {% if current_user.is_admin() %}
                 <a href="{{ url_for('admin.dashboard') }}" class="nav-link">Dashboard</a>
                 <a href="{{ url_for('admin.usuarios') }}" class="nav-link">Usuários</a>
@@ -53,16 +58,62 @@
                 {% endif %}
             </nav>
             
-            <div class="navbar-user">
+            <div class="navbar-user desktop-nav">
                 <span class="user-info">
                     <span class="user-name">{{ current_user.nome }}</span>
                     <span class="user-badge badge-{{ current_user.tipo }}">{{ current_user.tipo|title }}</span>
                 </span>
+                <button class="btn btn-outline theme-toggle" aria-label="Alternar Tema" title="Alternar Tema">◐</button>
                 <a href="{{ url_for('auth.logout') }}" class="btn btn-outline">Sair</a>
             </div>
+
+            <!-- BOTÃO HAMBÚRGUER (MOBILE) -->
+            <button class="mobile-menu-btn" onclick="toggleSidebar()">
+                ☰
+            </button>
             {% endif %}
         </div>
     </header>
+
+    {% if current_user.is_authenticated %}
+    <!-- GAVETA LATERAL MOBILE (SIDEBAR) -->
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+    <div class="mobile-sidebar" id="mobile-sidebar">
+        <div class="sidebar-header">
+            <div class="user-info w-100 mb-0">
+                <span class="user-name">{{ current_user.nome }}</span>
+                <span class="user-badge badge-{{ current_user.tipo }}">{{ current_user.tipo|title }}</span>
+            </div>
+            <button class="sidebar-close" onclick="toggleSidebar()">&times;</button>
+        </div>
+        
+        <nav class="d-flex flex-column mb-auto">
+            {% if current_user.is_admin() %}
+            <a href="{{ url_for('admin.dashboard') }}" class="nav-link">Dashboard</a>
+            <a href="{{ url_for('admin.usuarios') }}" class="nav-link">Usuários</a>
+            <a href="{{ url_for('admin.salas') }}" class="nav-link">Salas</a>
+            <a href="{{ url_for('admin.cpfs_autorizados') }}" class="nav-link">CPFs Autorizados</a>
+            <a href="{{ url_for('admin.eventos') }}" class="nav-link">Eventos</a>
+            {% endif %}
+            
+            {% if current_user.is_organizador() %}
+            <a href="{{ url_for('organizador.salas') }}" class="nav-link">Salas</a>
+            <a href="{{ url_for('organizador.minhas_reservas') }}" class="nav-link">Meus Eventos</a>
+            {% endif %}
+            
+            {% if current_user.is_aluno() %}
+            <a href="{{ url_for('aluno.eventos_disponiveis') }}" class="nav-link">Eventos Disponíveis</a>
+            <a href="{{ url_for('aluno.meus_eventos') }}" class="nav-link">Minhas Inscrições</a>
+            <a href="{{ url_for('aluno.escanear_qr') }}" class="nav-link">Confirmar Presença (QR)</a>
+            {% endif %}
+        </nav>
+
+        <div class="mt-auto d-flex flex-column gap-2" style="border-top: 1px solid var(--border); padding-top: 1rem;">
+            <button class="btn btn-outline theme-toggle w-100" aria-label="Alternar Tema">◐ Alternar Tema</button>
+            <a href="{{ url_for('auth.logout') }}" class="btn btn-danger w-100">Sair da Sessão</a>
+        </div>
+    </div>
+    {% endif %}
 
     <!-- Flash Messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -99,25 +150,44 @@
     {% block extra_js %}{% endblock %}
     <script>
 document.addEventListener("DOMContentLoaded", function () {
+    // --- Lógica da Barra de Progresso ---
     const bar = document.querySelector(".progress-bar");
-    if (!bar) return;
-
-    const percent = parseInt(bar.dataset.percent) || 0;
-
-    // cor progressiva
-    if (percent >= 90) {
-        bar.style.backgroundColor = "#dc3545";
-    } else if (percent >= 70) {
-        bar.style.backgroundColor = "#ffc107";
-        bar.style.color = "#000";
-    } else {
-        bar.style.backgroundColor = "#28a745";
+    if (bar) {
+        const percent = parseInt(bar.dataset.percent) || 0;
+        if (percent >= 90) {
+            bar.style.backgroundColor = "#dc3545";
+        } else if (percent >= 70) {
+            bar.style.backgroundColor = "#ffc107";
+            bar.style.color = "#000";
+        } else {
+            bar.style.backgroundColor = "#6366F1"; // Usar cor primária nova
+        }
+        setTimeout(() => {
+            bar.style.width = percent + "%";
+        }, 100);
     }
 
-    // anima do 0 até o valor real
-    setTimeout(() => {
-        bar.style.width = percent + "%";
-    }, 100);
+    // --- Lógica do Tema (Dark/Light) com Delegação ---
+    document.addEventListener('click', (e) => {
+        const toggle = e.target.closest('.theme-toggle');
+        if (toggle) {
+            console.log('Botão de tema clicado!');
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        }
+    });
+    
+    // --- Lógica da Sidebar Mobile ---
+    window.toggleSidebar = function() {
+        const sidebar = document.getElementById('mobile-sidebar');
+        const overlay = document.querySelector('.sidebar-overlay');
+        if (sidebar && overlay) {
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('open');
+        }
+    };
 });
 </script>
 

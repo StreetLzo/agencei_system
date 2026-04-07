@@ -4,7 +4,7 @@ Gerencia login, logout e cadastro de usuários
 """
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from flask_login import login_user, logout_user, current_user
-from extensions import db
+from extensions import db, limiter, csrf
 from models.user import Usuario
 from models.pre_authorized_user import PreAuthorizedUser
 from utils.decorators import role_required, login_required_custom, anonymous_required
@@ -13,7 +13,8 @@ auth_bp = Blueprint('auth', __name__)
 
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
-@anonymous_required()  # Note os parênteses após a refatoração
+@anonymous_required()
+@limiter.limit('5 per minute', methods=['POST'])
 def login():
     """
     Página de login
@@ -124,9 +125,9 @@ def cadastro():
             db.session.commit()
             flash('✅ Cadastro realizado com sucesso! Faça login.', 'success')
             return redirect(url_for('auth.login'))
-        except Exception as e:
+        except Exception:
             db.session.rollback()
-            flash(f'❌ Erro ao criar conta: {str(e)}', 'error')
+            flash('❌ Erro ao criar conta. Tente novamente.', 'error')
             return render_template('auth/cadastro.html')
     
     return render_template('auth/cadastro.html')
@@ -184,15 +185,17 @@ def cadastro_organizador():
             db.session.commit()
             flash('✅ Cadastro de organizador realizado com sucesso! Faça login.', 'success')
             return redirect(url_for('auth.login'))
-        except Exception as e:
+        except Exception:
             db.session.rollback()
-            flash(f'❌ Erro ao criar conta: {str(e)}', 'error')
+            flash('❌ Erro ao criar conta. Tente novamente.', 'error')
             return render_template('auth/cadastro_organizador.html')
     
     return render_template('auth/cadastro_organizador.html')
 
 
 @auth_bp.route('/verificar-cpf-organizador', methods=['POST'])
+@limiter.limit('10 per minute')
+@csrf.exempt
 def verificar_cpf_organizador():
     """
     Endpoint AJAX para verificar se CPF está autorizado

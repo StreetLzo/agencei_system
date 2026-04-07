@@ -136,7 +136,7 @@
         }
     });
 
-    const linkInscricao = "{{ url_for('aluno.inscrever_evento', evento_id=evento.id, _external=True) }}";
+    const linkInscricao = "{{ url_for('aluno.detalhes_evento', evento_id=evento.id, _external=True) }}";
 
     new QRCode(document.getElementById("qrcode"), {
         text: linkInscricao,

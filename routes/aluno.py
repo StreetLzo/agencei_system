@@ -2,7 +2,7 @@
 Blueprint: Aluno
 Inscrições, eventos e confirmação de presença
 """
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify
 from flask_login import current_user
 from extensions import db
 from models.evento import Evento
@@ -39,7 +39,6 @@ def eventos_disponiveis():
             'pode_inscrever': not inscrito and tem_vagas and not evento.ja_iniciou()
         })
 
-    # Corrigido o caminho do template
     return render_template('aluno/eventos_disponiveis.html', eventos_data=eventos_data)
 
 
@@ -48,22 +47,15 @@ def eventos_disponiveis():
 def detalhes_evento(evento_id):
     evento = Evento.query.get_or_404(evento_id)
 
-    # inscrição do aluno (se existir)
     inscricao = Inscricao.query.filter_by(
         evento_id=evento.id,
         aluno_id=current_user.id
     ).first()
 
-    # capacidade da sala
     capacidade = evento.sala.capacidade
-
-    # total de inscritos
     total_inscritos = Inscricao.query.filter_by(evento_id=evento.id).count()
-
-    # vagas disponíveis
     vagas_disponiveis = max(capacidade - total_inscritos, 0)
 
-    # percentual de ocupação
     percentual = 0
     if capacidade > 0:
         percentual = int((total_inscritos / capacidade) * 100)
@@ -79,25 +71,10 @@ def detalhes_evento(evento_id):
     )
 
 
-
-@aluno_bp.route('/eventos/<int:evento_id>/inscrever')
-@role_required('aluno')
-def inscrever_evento(evento_id):
-    if not current_user.is_authenticated:
-        flash('⚠️ Você precisa estar logado para se inscrever.', 'warning')
-        session['next_url'] = url_for('aluno.confirmar_inscricao', evento_id=evento_id)
-        return redirect(url_for('auth.login'))
-
-    if not current_user.is_aluno():
-        flash('❌ Apenas alunos podem se inscrever em eventos.', 'error')
-        return redirect(url_for('auth.login'))
-
-    return redirect(url_for('aluno.confirmar_inscricao', evento_id=evento_id))
-
-
-@aluno_bp.route('/eventos/<int:evento_id>/confirmar-inscricao')
+@aluno_bp.route('/eventos/<int:evento_id>/confirmar-inscricao', methods=['POST'])
 @role_required('aluno')
 def confirmar_inscricao(evento_id):
+    """Confirmar inscrição em um evento (POST only — protegido contra CSRF)"""
     evento = Evento.query.get_or_404(evento_id)
 
     if evento.ja_iniciou():
@@ -123,9 +100,9 @@ def confirmar_inscricao(evento_id):
         db.session.commit()
         flash(f'✅ Inscrição realizada com sucesso no evento "{evento.nome_evento}"!', 'success')
         return redirect(url_for('aluno.meus_eventos'))
-    except Exception as e:
+    except Exception:
         db.session.rollback()
-        flash(f'❌ Erro ao realizar inscrição: {str(e)}', 'error')
+        flash('❌ Erro ao realizar inscrição.', 'error')
         return redirect(url_for('aluno.eventos_disponiveis'))
 
 
@@ -153,7 +130,7 @@ def meus_eventos():
             'ja_confirmou': inscricao.esta_presente
         })
 
-    eventos_data.sort(key=lambda x: x['evento'].data_hora, reverse=True)
+    eventos_data.sort(key=lambda x: x['evento'].data_hora or datetime.min, reverse=True)
 
     return render_template(
         'aluno/meus_eventos.html',
@@ -182,9 +159,9 @@ def cancelar_inscricao(evento_id):
         db.session.delete(inscricao)
         db.session.commit()
         flash(f'✅ Inscrição cancelada no evento "{nome_evento}".', 'success')
-    except Exception as e:
+    except Exception:
         db.session.rollback()
-        flash(f'❌ Erro ao cancelar inscrição: {str(e)}', 'error')
+        flash('❌ Erro ao cancelar inscrição.', 'error')
 
     return redirect(url_for('aluno.meus_eventos'))
 
@@ -198,17 +175,33 @@ def escanear_qr():
 @aluno_bp.route('/confirmar-presenca', methods=['POST'])
 @role_required('aluno')
 def confirmar_presenca():
-    qr_code_lido = request.form.get('qr_code_lido', '').strip()
+    """
+    Confirma presença via QR Code dinâmico (TOTP).
+    Espera receber: evento_id + totp_token
+    """
+    evento_id = request.form.get('evento_id', '').strip()
+    totp_token = request.form.get('totp_token', '').strip()
 
-    if not qr_code_lido:
-        flash('❌ Código QR inválido.', 'error')
-        return redirect(url_for('aluno.meus_eventos'))
+    if not evento_id or not totp_token:
+        flash('❌ Dados de presença inválidos.', 'error')
+        return redirect(url_for('aluno.escanear_qr'))
 
-    evento = Evento.query.filter_by(qr_code_link=qr_code_lido).first()
+    try:
+        evento_id = int(evento_id)
+    except ValueError:
+        flash('❌ Evento inválido.', 'error')
+        return redirect(url_for('aluno.escanear_qr'))
+
+    evento = Evento.query.get(evento_id)
 
     if not evento:
-        flash('❌ Código QR inválido ou evento não encontrado.', 'error')
-        return redirect(url_for('aluno.meus_eventos'))
+        flash('❌ Evento não encontrado.', 'error')
+        return redirect(url_for('aluno.escanear_qr'))
+
+    # Validar o token temporal (anti-replay)
+    if not evento.validar_token_temporal(totp_token):
+        flash('❌ Código QR expirado ou inválido. Escaneie novamente o QR Code atualizado.', 'error')
+        return redirect(url_for('aluno.escanear_qr'))
 
     inscricao = Inscricao.query.filter_by(aluno_id=current_user.id, evento_id=evento.id).first()
 
@@ -221,15 +214,15 @@ def confirmar_presenca():
         return redirect(url_for('aluno.meus_eventos'))
 
     if not evento.pode_confirmar_presenca():
-        flash(f'❌ Não é possível confirmar presença. O evento "{evento.nome_evento}" não está na janela de confirmação (30 min antes até 30 min depois).', 'error')
+        flash('❌ Fora da janela de confirmação (30 min antes até 30 min depois).', 'error')
         return redirect(url_for('aluno.meus_eventos'))
 
     try:
         inscricao.confirmar_presenca()
         flash(f'✅ Presença confirmada com sucesso no evento "{evento.nome_evento}"!', 'success')
-    except Exception as e:
+    except Exception:
         db.session.rollback()
-        flash(f'❌ Erro ao confirmar presença: {str(e)}', 'error')
+        flash('❌ Erro ao confirmar presença.', 'error')
 
     return redirect(url_for('aluno.meus_eventos'))
 
@@ -237,32 +230,47 @@ def confirmar_presenca():
 @aluno_bp.route('/validar-qr', methods=['POST'])
 @role_required('aluno')
 def validar_qr():
-    qr_code = request.json.get('qr_code', '').strip()
+    """
+    Endpoint AJAX: valida o QR Code TOTP escaneado.
+    Recebe JSON: { "evento_id": int, "totp_token": str }
+    """
+    data = request.get_json(silent=True) or {}
+    evento_id = data.get('evento_id')
+    totp_token = data.get('totp_token', '').strip()
 
-    if not qr_code:
-        return {'valido': False, 'mensagem': 'Código QR vazio'}
+    if not evento_id or not totp_token:
+        return jsonify({'valido': False, 'mensagem': 'Dados inválidos'})
 
-    evento = Evento.query.filter_by(qr_code_link=qr_code).first()
+    try:
+        evento_id = int(evento_id)
+    except (ValueError, TypeError):
+        return jsonify({'valido': False, 'mensagem': 'Evento inválido'})
+
+    evento = Evento.query.get(evento_id)
 
     if not evento:
-        return {'valido': False, 'mensagem': 'Código QR inválido'}
+        return jsonify({'valido': False, 'mensagem': 'Evento não encontrado'})
+
+    if not evento.validar_token_temporal(totp_token):
+        return jsonify({'valido': False, 'mensagem': 'Código QR expirado. Peça para o organizador atualizar.'})
 
     inscricao = Inscricao.query.filter_by(aluno_id=current_user.id, evento_id=evento.id).first()
 
     if not inscricao:
-        return {'valido': False, 'mensagem': f'Você não está inscrito no evento "{evento.nome_evento}"'}
+        return jsonify({'valido': False, 'mensagem': f'Você não está inscrito no evento "{evento.nome_evento}"'})
 
     if inscricao.esta_presente:
-        return {'valido': False, 'mensagem': 'Presença já confirmada anteriormente'}
+        return jsonify({'valido': False, 'mensagem': 'Presença já confirmada anteriormente'})
 
     if not evento.pode_confirmar_presenca():
-        return {'valido': False, 'mensagem': 'Fora da janela de confirmação (30 min antes até 30 min depois)'}
+        return jsonify({'valido': False, 'mensagem': 'Fora da janela de confirmação (30 min antes até 30 min depois)'})
 
-    return {
+    return jsonify({
         'valido': True,
+        'evento_id': evento.id,
         'evento': {
             'nome': evento.nome_evento,
-            'data_hora': evento.data_hora.strftime('%d/%m/%Y às %H:%M'),
+            'data_hora': evento.data_hora.strftime('%d/%m/%Y às %H:%M') if evento.data_hora else 'N/A',
             'sala': evento.sala.nome if evento.sala else 'Não definida'
         }
-    }
+    })

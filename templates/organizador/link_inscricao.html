@@ -34,7 +34,7 @@
                     <label class="fw-bold">Link de Inscrição:</label>
                     <div style="display: flex; gap: 0.5rem;">
                         <input type="text" class="form-control" id="link-inscricao" 
-                               value="{{ url_for('aluno.inscrever_evento', evento_id=evento.id, _external=True) }}" 
+                               value="{{ url_for('aluno.detalhes_evento', evento_id=evento.id, _external=True) }}" 
                                readonly>
                         <button class="btn btn-primary" onclick="copiarLink()">Copiar</button>
                     </div>
@@ -95,7 +95,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
-    const linkInscricao = "{{ url_for('aluno.inscrever_evento', evento_id=evento.id, _external=True) }}";
+    const linkInscricao = "{{ url_for('aluno.detalhes_evento', evento_id=evento.id, _external=True) }}";
     const nomeEvento = "{{ evento.nome_evento }}";
     
     

@@ -20,6 +20,7 @@
         {% endwith %}
 
         <form method="POST" action="{{ url_for('organizador.editar_evento', evento_id=evento.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
             <!-- Nome -->
             <div class="form-group">
@@ -41,8 +42,8 @@
                         type="date"
                         name="data"
                         class="form-control"
-                        value="{{ evento.data_hora.strftime('%Y-%m-%d') }}"
-                        required
+                        value="{{ evento.data_hora.strftime('%Y-%m-%d') if evento.data_hora else '' }}"
+                        {% if evento.data_hora %}required{% endif %}
                     >
                 </div>
 
@@ -52,8 +53,8 @@
                         type="time"
                         name="hora"
                         class="form-control"
-                        value="{{ evento.data_hora.strftime('%H:%M') }}"
-                        required
+                        value="{{ evento.data_hora.strftime('%H:%M') if evento.data_hora else '' }}"
+                        {% if evento.data_hora %}required{% endif %}
                     >
                 </div>
             </div>
@@ -68,8 +69,8 @@
                     max="12"
                     name="duracao"
                     class="form-control"
-                    value="{{ evento.duracao_horas }}"
-                    required
+                    value="{{ evento.duracao_horas if evento.duracao_horas else '' }}"
+                    {% if evento.duracao_horas %}required{% endif %}
                 >
             </div>
 
@@ -119,6 +120,7 @@
                 action="{{ url_for('organizador.cancelar_evento', evento_id=evento.id) }}"
                 onsubmit="return confirm('Tem certeza que deseja CANCELAR este evento? Esta ação não pode ser desfeita!');"
             >
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <button type="submit" class="btn btn-danger">
                     Cancelar Evento
                 </button>

@@ -90,7 +90,7 @@
     <div class="card-body p-0">
         {% if eventos %}
         <div class="table-responsive">
-            <table class="table custom-table align-middle mb-0">
+            <table class="table align-middle mb-0">
                 <thead>
                     <tr>
                         <th>ID</th>
@@ -107,11 +107,12 @@
                     {% for evento in eventos %}
                     <tr>
                         <td class="text-muted fw-bold">#{{ evento.id }}</td>
-                        <td><strong style="color: var(--gray-700, #556177);">{{ evento.nome_evento }}</strong></td>
+                        <td><strong class="text-main">{{ evento.nome_evento }}</strong></td>
                         <td>
-                            {# CORREÇÃO AQUI: Verificando se a data não é nula antes de formatar #}
                             {% if evento.data_hora %}
-                                <span class="date-badge">{{ evento.data_hora.strftime('%d/%m/%Y %H:%M') }}</span>
+                                <span class="badge bg-light text-muted" style="font-weight: 500; font-size: 0.85rem;">
+                                    {{ evento.data_hora.strftime('%d/%m/%Y %H:%M') }}
+                                </span>
                             {% else %}
                                 <span class="text-danger small fw-bold">Não definida</span>
                             {% endif %}
@@ -119,31 +120,32 @@
                         <td class="text-muted">{{ evento.sala.nome }}</td>
                         <td class="text-muted">{{ evento.organizador.nome if evento.organizador else 'Sistema' }}</td>
                         <td>
-                            <span class="badge" style="background: rgba(102, 126, 234, 0.1); color: var(--primary, #667eea); font-size: 0.85rem;">
+                            <span class="badge bg-primary">
                                 {{ evento.inscricoes|length }} / {{ evento.sala.capacidade }}
                             </span>
                         </td>
                         <td>
                             {% if evento.status == 'agendado' %}
-                                <span class="badge" style="background: rgba(46, 204, 113, 0.1); color: #2ecc71;">Agendado</span>
+                                <span class="badge bg-success">Agendado</span>
                             {% elif evento.status == 'andamento' %}
-                                <span class="badge" style="background: rgba(241, 194, 5, 0.1); color: #f1c40f;">Em andamento</span>
+                                <span class="badge bg-warning">Em andamento</span>
                             {% else %}
-                                <span class="badge" style="background: rgba(108, 117, 125, 0.1); color: #6c757d;">Encerrado</span>
+                                <span class="badge bg-secondary">Encerrado</span>
                             {% endif %}
                         </td>
                         <td class="text-center">
                             <div class="btn-group btn-group-sm" role="group">
                                 <a href="{{ url_for('admin.detalhes_evento', evento_id=evento.id) }}" 
-                                   class="btn btn-outline-info" title="Detalhes" style="border-color: rgba(52, 152, 219, 0.5);">
+                                   class="btn btn-sm btn-outline">
                                     Ver Detalhes
                                 </a>
-                                <a href="{{ url_for('admin.cancelar_evento', evento_id=evento.id) }}" 
-                                   class="btn btn-outline-danger" 
-                                   onclick="return confirm('Deseja realmente cancelar este evento?')"
-                                   title="Cancelar" style="border-color: rgba(231, 76, 60, 0.5);">
-                                    Cancelar
-                                </a>
+                                <form method="POST" action="{{ url_for('admin.cancelar_evento', evento_id=evento.id) }}" style="display:inline;"
+                                      onsubmit="return confirm('Deseja realmente cancelar este evento?')">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm btn-danger">
+                                        Cancelar
+                                    </button>
+                                </form>
                             </div>
                         </td>
                     </tr>
@@ -158,131 +160,4 @@
         {% endif %}
     </div>
 </div>
-
-<style>
-    /* === ESTILOS IMPORTADOS DO DASHBOARD === */
-    .dashboard-title {
-        font-weight: 800;
-        background: linear-gradient(135deg, var(--primary, #667eea) 0%, var(--secondary, #764ba2) 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        letter-spacing: -0.5px;
-        margin-bottom: 0.25rem;
-    }
-    
-    .dashboard-subtitle {
-        color: var(--gray-600, #718096);
-        font-weight: 500;
-        margin-bottom: 0;
-    }
-
-    .section-title {
-        color: var(--gray-700, #4a5568);
-        font-weight: 700;
-    }
-
-    /* === CARDS DE ESTATÍSTICAS === */
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 1.5rem;
-    }
-    
-    .stat-card {
-        background: var(--black, #0e001b);
-        padding: 1.5rem;
-        border-radius: var(--radius-lg, 16px);
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
-        border: 1px solid var(--gray-200, #030303);
-        display: flex;
-        align-items: center;
-        gap: 1.25rem;
-        transition: transform var(--transition-base, 0.3s ease), box-shadow var(--transition-base, 0.3s ease);
-    }
-    
-    .stat-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 12px 25px rgba(0, 0, 0, 0.08);
-    }
-    
-    .stat-icon {
-        font-size: 1.75rem;
-        width: 56px;
-        height: 56px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: var(--radius-md, 12px);
-    }
-
-    .stat-content h3 {
-        margin: 0;
-        font-size: 1.5rem;
-        font-weight: 800;
-        color: var(--gray-700, #556177);
-    }
-
-    .stat-content p {
-        margin: 0;
-        font-size: 0.875rem;
-        color: var(--gray-500, #a0aec0);
-        font-weight: 600;
-    }
-
-    /* === SEÇÕES E TABELAS === */
-    .section-surface {
-        background: var(--white, #0e001b);
-        border-radius: var(--radius-lg, 16px);
-        padding: 1.75rem;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
-        border: 1px solid var(--gray-200, #000000);
-    }
-
-    .custom-table th {
-        font-size: 0.8125rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: var(--gray-500, #a0aec0);
-        border-bottom: 2px solid var(--gray-200, #0e001b);
-        padding-bottom: 1rem;
-        background-color: transparent !important;
-    }
-
-    .custom-table td {
-        padding: 1rem 0.5rem;
-        border-bottom: 1px solid var(--gray-200, #000000);
-        color: var(--gray-700, #4a5568);
-    }
-
-    .custom-table tr:last-child td {
-        border-bottom: none;
-    }
-
-    .custom-table tbody tr {
-        transition: background-color 0.2s ease;
-    }
-
-    .custom-table tbody tr:hover {
-        background-color: rgba(255, 255, 255, 0.02);
-    }
-
-    .date-badge {
-        background: var(--gray-100, #0e001b);
-        padding: 0.4rem 0.75rem;
-        border-radius: 6px;
-        font-size: 0.85rem;
-        font-weight: 500;
-        color: var(--gray-600, #718096);
-        border: 1px solid var(--gray-200, #000000);
-    }
-
-    /* Ajuste para inputs do filtro ficarem bonitos */
-    .form-control:focus, .form-select:focus {
-        background-color: var(--black, #0e001b);
-        color: var(--gray-500, #a0aec0);
-        border-color: var(--primary, #667eea);
-        box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
-    }
-</style>
 {% endblock %}
