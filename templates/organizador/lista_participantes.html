@@ -5,7 +5,7 @@
 <div class="container" style="max-width: 1200px;">
     <div class="section-surface">
         <div class="section-header">
-            <h2 class="section-title"><img src="{{ url_for('static', filename='icons/icon_inscricoes_recentes.png') }}" alt="Participantes" class="title-icon"> Lista de Participantes</h2>
+            <h2 class="section-title"><i data-lucide="clipboard-list" class="title-icon"></i> Lista de Participantes</h2>
             <p class="section-subtitle">
                 <strong>{{ evento.nome_evento }}</strong><br>
                 {% if evento.data_hora %}
@@ -20,7 +20,7 @@
         <!-- QR Code Dinâmico (TOTP) -->
         <div class="card mb-4">
             <div class="card-header">
-                <h3 class="mb-0">🔐 QR Code Dinâmico para Presença</h3>
+                <h3 class="mb-0"><i data-lucide="qr-code" style="width:16px;height:16px;margin-right:6px;"></i> QR Code Dinâmico para Presença</h3>
             </div>
             <div class="card-body text-center">
                 <p class="mb-2">Os participantes devem escanear este código <strong>em tempo real</strong>.</p>

@@ -4,13 +4,13 @@
 
 {% block content %}
 <div class="page-header mb-4">
-    <h1 class="dashboard-title"><img src="{{ url_for('static', filename='icons/icon_dashboard.png') }}" alt="Dashboard" class="title-icon"> Dashboard Administrativo</h1>
+    <h1 class="dashboard-title"><i data-lucide="layout-dashboard" class="title-icon"></i> Dashboard Administrativo</h1>
     <p class="dashboard-subtitle">Visão geral em tempo real do sistema AGENCEI</p>
 </div>
 
 <div class="stats-grid mb-5">
     <div class="stat-card">
-        <div class="stat-icon">👥</div>
+        <div class="stat-icon"><i data-lucide="users"></i></div>
         <div class="stat-content">
             <h3>{{ total_usuarios }}</h3>
             <p>Total de Usuários</p>
@@ -18,7 +18,7 @@
     </div>
 
     <div class="stat-card">
-        <div class="stat-icon">🎓</div>
+        <div class="stat-icon"><i data-lucide="graduation-cap"></i></div>
         <div class="stat-content">
             <h3>{{ total_alunos }}</h3>
             <p>Alunos</p>
@@ -26,7 +26,7 @@
     </div>
 
     <div class="stat-card">
-        <div class="stat-icon">👔</div>
+        <div class="stat-icon"><i data-lucide="briefcase"></i></div>
         <div class="stat-content">
             <h3>{{ total_organizadores }}</h3>
             <p>Organizadores</p>
@@ -34,7 +34,7 @@
     </div>
 
     <div class="stat-card">
-        <div class="stat-icon">🔑</div>
+        <div class="stat-icon"><i data-lucide="shield"></i></div>
         <div class="stat-content">
             <h3>{{ total_admins }}</h3>
             <p>Administradores</p>
@@ -42,7 +42,7 @@
     </div>
 
     <div class="stat-card">
-        <div class="stat-icon">🏢</div>
+        <div class="stat-icon"><i data-lucide="building-2"></i></div>
         <div class="stat-content">
             <h3>{{ total_salas }}</h3>
             <p>Salas</p>
@@ -50,7 +50,7 @@
     </div>
 
     <div class="stat-card">
-        <div class="stat-icon">📅</div>
+        <div class="stat-icon"><i data-lucide="calendar"></i></div>
         <div class="stat-content">
             <h3>{{ total_eventos }}</h3>
             <p>Eventos</p>
@@ -58,7 +58,7 @@
     </div>
 
     <div class="stat-card">
-        <div class="stat-icon">✅</div>
+        <div class="stat-icon"><i data-lucide="check-circle"></i></div>
         <div class="stat-content">
             <h3>{{ total_inscricoes }}</h3>
             <p>Inscrições</p>
@@ -66,7 +66,7 @@
     </div>
 
     <div class="stat-card">
-        <div class="stat-icon">🎫</div>
+        <div class="stat-icon"><i data-lucide="ticket"></i></div>
         <div class="stat-content">
             <h3>{{ cpfs_autorizados_disponiveis }}</h3>
             <p>CPFs Livres</p>
@@ -76,22 +76,22 @@
 </div>
 
 <div class="quick-actions mb-5">
-    <h2 class="section-title h4 mb-3"><img src="{{ url_for('static', filename='icons/icon_acesso_rapido.png') }}" alt="Ações Rápidas" class="title-icon"> Ações Rápidas</h2>
+    <h2 class="section-title h4 mb-3"><i data-lucide="zap" class="title-icon"></i> Ações Rápidas</h2>
     <div class="actions-grid">
         <a href="{{ url_for('admin.adicionar_cpf_autorizado') }}" class="action-card">
-            <span class="action-icon">➕</span>
+            <span class="action-icon"><i data-lucide="plus-circle"></i></span>
             <span class="action-text">Novo CPF</span>
         </a>
         <a href="{{ url_for('admin.adicionar_sala') }}" class="action-card">
-            <span class="action-icon">🏢</span>
+            <span class="action-icon"><i data-lucide="building-2"></i></span>
             <span class="action-text">Nova Sala</span>
         </a>
         <a href="{{ url_for('admin.usuarios') }}" class="action-card">
-            <span class="action-icon">👥</span>
+            <span class="action-icon"><i data-lucide="users"></i></span>
             <span class="action-text">Usuários</span>
         </a>
         <a href="{{ url_for('admin.eventos') }}" class="action-card">
-            <span class="action-icon">📋</span>
+            <span class="action-icon"><i data-lucide="clipboard-list"></i></span>
             <span class="action-text">Eventos</span>
         </a>
     </div>
@@ -101,7 +101,7 @@
     <div class="col-12 col-xl-7 mb-4">
         <div class="section-surface h-100">
             <div class="section-header d-flex justify-content-between align-items-center mb-4">
-                <h2 class="section-title h5 mb-0"><img src="{{ url_for('static', filename='icons/icon_eventos_recentes.png') }}" alt="Eventos Recentes" class="title-icon"> Eventos Recentes</h2>
+                <h2 class="section-title h5 mb-0"><i data-lucide="calendar" class="title-icon"></i> Eventos Recentes</h2>
                 <a href="{{ url_for('admin.eventos') }}" class="btn-link-custom">Ver todos</a>
             </div>
             
@@ -145,7 +145,7 @@
     <div class="col-12 col-xl-5 mb-4">
         <div class="section-surface h-100">
             <div class="section-header mb-4">
-                <h2 class="section-title h5 mb-0"><img src="{{ url_for('static', filename='icons/icon_inscricoes_recentes.png') }}" alt="Inscrições Recentes" class="title-icon"> Inscrições Recentes</h2>
+                <h2 class="section-title h5 mb-0"><i data-lucide="clipboard-list" class="title-icon"></i> Inscrições Recentes</h2>
             </div>
             
             <div class="table-responsive">

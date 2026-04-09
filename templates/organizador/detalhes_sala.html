@@ -7,7 +7,7 @@
         <div class="section-header">
             <div style="display: flex; justify-content: space-between; align-items: start;">
                 <div>
-                    <h2 class="section-title" style="margin-bottom: 0.5rem;"><img src="{{ url_for('static', filename='icons/icon_gerenciar_salas.png') }}" alt="Sala" class="title-icon"> Sala: {{ sala.nome }}</h2>
+                    <h2 class="section-title" style="margin-bottom: 0.5rem;"><i data-lucide="door-open" class="title-icon"></i> Sala: {{ sala.nome }}</h2>
                     <p class="section-subtitle">{{ sala.localizacao or 'Localização não informada' }}</p>
                 </div>
                 <a href="{{ url_for('organizador.reservar_sala', sala_id=sala.id) }}" class="btn btn-primary">Reservar Sala</a>

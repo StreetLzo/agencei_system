@@ -732,14 +732,15 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
    ICONS STYLES
    ============================================================ */
 .title-icon {
-    width: 64px;
-    height: 64px;
+    width: 28px;
+    height: 28px;
     vertical-align: middle;
-    margin-right: 16px;
-    object-fit: contain;
+    margin-right: 10px;
     position: relative;
-    top: -4px;
+    top: -2px;
+    flex-shrink: 0;
 }
+img.title-icon { object-fit: contain; }
 
 .stat-img-icon {
     width: 56px;
@@ -767,3 +768,9 @@ body.dark-theme .stat-img-icon,
 body.dark-theme .action-img-icon {
     filter: invert(1) brightness(2);
 }
+/* Lucide SVG icon overrides */
+[data-theme="dark"] img.title-icon, body.dark-theme img.title-icon { filter: invert(1) brightness(2); }
+[data-theme="dark"] .title-icon:not(img), body.dark-theme .title-icon:not(img) { filter: none; }
+.stat-icon svg { width: 26px; height: 26px; stroke-width: 2; }
+.action-icon { display: flex; align-items: center; justify-content: center; }
+.action-icon svg { width: 28px; height: 28px; stroke-width: 2; }

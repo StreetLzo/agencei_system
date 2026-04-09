@@ -5,7 +5,7 @@
 {% block content %}
 <div class="page-header mb-4 d-flex justify-content-between align-items-center">
     <div>
-        <h1 class="dashboard-title">📅 Gerenciar Eventos</h1>
+        <h1 class="dashboard-title"><i data-lucide="calendar" class="title-icon"></i> Gerenciar Eventos</h1>
         <p class="dashboard-subtitle">Listagem e controle de todos os eventos do sistema</p>
     </div>
     <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary" style="border-radius: var(--radius-md, 8px);">
@@ -15,7 +15,7 @@
 
 <div class="stats-grid mb-4">
     <div class="stat-card">
-        <div class="stat-icon" style="background: rgba(102, 126, 234, 0.1); color: var(--primary, #667eea);">📊</div>
+        <div class="stat-icon" style="background: rgba(102, 126, 234, 0.1); color: var(--primary, #667eea);"><i data-lucide="bar-chart-2"></i></div>
         <div class="stat-content">
             <h3>{{ eventos|length }}</h3>
             <p>Total de Eventos</p>
@@ -23,7 +23,7 @@
     </div>
 
     <div class="stat-card">
-        <div class="stat-icon" style="background: rgba(46, 204, 113, 0.1); color: var(--success, #2ecc71);">✅</div>
+        <div class="stat-icon" style="background: rgba(46, 204, 113, 0.1); color: var(--success, #2ecc71);"><i data-lucide="check-circle"></i></div>
         <div class="stat-content">
             <h3>{{ eventos|selectattr('status', 'equalto', 'agendado')|list|length }}</h3>
             <p>Agendados</p>
@@ -31,7 +31,7 @@
     </div>
 
     <div class="stat-card">
-        <div class="stat-icon" style="background: rgba(241, 194, 5, 0.1); color: var(--warning, #f1c40f);">⏳</div>
+        <div class="stat-icon" style="background: rgba(241, 194, 5, 0.1); color: var(--warning, #f1c40f);"><i data-lucide="clock"></i></div>
         <div class="stat-content">
             <h3>{{ eventos|selectattr('status', 'equalto', 'andamento')|list|length }}</h3>
             <p>Em Andamento</p>
@@ -39,7 +39,7 @@
     </div>
 
     <div class="stat-card">
-        <div class="stat-icon" style="background: rgba(108, 117, 125, 0.1); color: var(--gray-600, #6c757d);">🛑</div>
+        <div class="stat-icon" style="background: rgba(108, 117, 125, 0.1); color: var(--gray-600, #6c757d);"><i data-lucide="x-circle"></i></div>
         <div class="stat-content">
             <h3>{{ eventos|selectattr('status', 'equalto', 'encerrado')|list|length }}</h3>
             <p>Encerrados</p>
@@ -48,7 +48,7 @@
 </div>
 
 <div class="section-surface mb-4">
-    <h2 class="section-title h5 mb-3"><img src="{{ url_for('static', filename='icons/icon_filtrar_eventos.png') }}" alt="Filtrar" class="title-icon"> Filtrar Eventos</h2>
+    <h2 class="section-title h5 mb-3"><i data-lucide="filter" class="title-icon"></i> Filtrar Eventos</h2>
     <form method="GET" class="row g-3 align-items-end">
         <div class="col-md-4">
             <label class="form-label text-muted small fw-bold">Buscar</label>
@@ -84,7 +84,7 @@
 
 <div class="section-surface">
     <div class="section-header mb-3">
-        <h2 class="section-title h5 mb-0">📋 Lista Completa de Eventos</h2>
+        <h2 class="section-title h5 mb-0"><i data-lucide="list" class="title-icon"></i> Lista Completa de Eventos</h2>
     </div>
     
     <div class="card-body p-0">

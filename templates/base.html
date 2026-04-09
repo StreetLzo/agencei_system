@@ -63,13 +63,13 @@
                     <span class="user-name">{{ current_user.nome }}</span>
                     <span class="user-badge badge-{{ current_user.tipo }}">{{ current_user.tipo|title }}</span>
                 </span>
-                <button class="btn btn-outline theme-toggle" aria-label="Alternar Tema" title="Alternar Tema">◐</button>
+                <button class="btn btn-outline theme-toggle" aria-label="Alternar Tema" title="Alternar Tema"><i data-lucide="sun-moon"></i></button>
                 <a href="{{ url_for('auth.logout') }}" class="btn btn-outline">Sair</a>
             </div>
 
             <!-- BOTÃO HAMBÚRGUER (MOBILE) -->
-            <button class="mobile-menu-btn" onclick="toggleSidebar()">
-                ☰
+            <button class="mobile-menu-btn" onclick="toggleSidebar()" aria-label="Menu">
+                <i data-lucide="menu"></i>
             </button>
             {% endif %}
         </div>
@@ -109,7 +109,7 @@
         </nav>
 
         <div class="mt-auto d-flex flex-column gap-2" style="border-top: 1px solid var(--border); padding-top: 1rem;">
-            <button class="btn btn-outline theme-toggle w-100" aria-label="Alternar Tema">◐ Alternar Tema</button>
+            <button class="btn btn-outline theme-toggle w-100" aria-label="Alternar Tema"><i data-lucide="sun-moon" style="margin-right:6px;"></i> Alternar Tema</button>
             <a href="{{ url_for('auth.logout') }}" class="btn btn-danger w-100">Sair da Sessão</a>
         </div>
     </div>
@@ -148,6 +148,8 @@
 
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     {% block extra_js %}{% endblock %}
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script>lucide.createIcons();</script>
     <script>
 document.addEventListener("DOMContentLoaded", function () {
     // --- Lógica da Barra de Progresso ---

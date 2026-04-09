@@ -5,7 +5,7 @@
 {% block content %}
 <div class="page-header mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
     <div>
-        <h1 class="dashboard-title"><img src="{{ url_for('static', filename='icons/icon_gerenciar_salas.png') }}" alt="Gerenciar Salas" class="title-icon"> Gerenciar Salas</h1>
+        <h1 class="dashboard-title"><i data-lucide="door-open" class="title-icon"></i> Gerenciar Salas</h1>
         <p class="dashboard-subtitle">Visualizar e gerenciar as salas e espaços do sistema</p>
     </div>
     <div class="d-flex gap-2">
@@ -13,28 +13,28 @@
             Voltar
         </a>
         <a href="{{ url_for('admin.adicionar_sala') }}" class="btn btn-primary" style="background: linear-gradient(135deg, var(--primary, #667eea) 0%, var(--primary-dark, #5a67d8) 100%); border: none; border-radius: var(--radius-md, 8px);">
-            ➕ Nova Sala
+            <i data-lucide="plus-circle" style="margin-right:4px;"></i> Nova Sala
         </a>
     </div>
 </div>
 
 <div class="stats-grid mb-5" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
     <div class="stat-card py-3">
-        <div class="stat-icon" style="background: rgba(52, 152, 219, 0.1); color: #3498db; width: 45px; height: 45px; font-size: 1.25rem;">📊</div>
+        <div class="stat-icon" style="background: rgba(52, 152, 219, 0.1); color: #3498db; width: 45px; height: 45px;"><i data-lucide="bar-chart-2"></i></div>
         <div class="stat-content">
             <h3 class="mb-0 fs-4">{{ salas|length }}</h3>
             <p class="mb-0 small">Total de Salas</p>
         </div>
     </div>
     <div class="stat-card py-3">
-        <div class="stat-icon" style="background: rgba(46, 204, 113, 0.1); color: #2ecc71; width: 45px; height: 45px; font-size: 1.25rem;">✅</div>
+        <div class="stat-icon" style="background: rgba(46, 204, 113, 0.1); color: #2ecc71; width: 45px; height: 45px;"><i data-lucide="check-circle"></i></div>
         <div class="stat-content">
             <h3 class="mb-0 fs-4">{{ salas|selectattr('ativa', 'equalto', True)|list|length }}</h3>
             <p class="mb-0 small">Salas Ativas</p>
         </div>
     </div>
     <div class="stat-card py-3">
-        <div class="stat-icon" style="background: rgba(231, 76, 60, 0.1); color: #e74c3c; width: 45px; height: 45px; font-size: 1.25rem;">🔒</div>
+        <div class="stat-icon" style="background: rgba(231, 76, 60, 0.1); color: #e74c3c; width: 45px; height: 45px;"><i data-lucide="lock"></i></div>
         <div class="stat-content">
             <h3 class="mb-0 fs-4">{{ salas|selectattr('ativa', 'equalto', False)|list|length }}</h3>
             <p class="mb-0 small">Salas Inativas</p>
@@ -58,12 +58,12 @@
                 
                 <div class="room-body mb-4">
                     <div class="d-flex align-items-center mb-2" style="color: var(--gray-600, #718096);">
-                        <span class="me-2">👥</span>
+                        <i data-lucide="users" class="me-2" style="width:16px;height:16px;"></i>
                         <span>Capacidade: <strong style="color: var(--gray-700, #556177);">{{ sala.capacidade }}</strong> pessoas</span>
                     </div>
                     
                     <div class="d-flex align-items-center mb-3" style="color: var(--gray-600, #718096);">
-                        <span class="me-2">📅</span>
+                        <i data-lucide="calendar" class="me-2" style="width:16px;height:16px;"></i>
                         <span>Eventos: <strong style="color: var(--gray-700, #556177);">{{ sala.eventos|length }}</strong> agendados</span>
                     </div>
 
@@ -78,12 +78,12 @@
                 
                 <div class="room-footer d-flex gap-2 mt-auto border-top pt-3" style="border-color: var(--gray-200, #030303) !important;">
                     <a href="{{ url_for('admin.editar_sala', sala_id=sala.id) }}" class="btn btn-outline-info btn-sm flex-grow-1" style="border-color: rgba(52, 152, 219, 0.3);">
-                        ✏️ Editar
+                        <i data-lucide="pencil" style="width:14px;height:14px;margin-right:4px;"></i> Editar
                     </a>
                     <form method="POST" action="{{ url_for('admin.alternar_status_sala', sala_id=sala.id) }}" class="flex-grow-1 m-0">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <button type="submit" class="btn btn-sm w-100 {% if sala.ativa %}btn-outline-warning{% else %}btn-outline-success{% endif %}" style="border-color: rgba(255, 255, 255, 0.1);">
-                            {% if sala.ativa %}🔒 Desativar{% else %}🔓 Ativar{% endif %}
+                            {% if sala.ativa %}<i data-lucide="lock" style="width:14px;height:14px;margin-right:4px;"></i> Desativar{% else %}<i data-lucide="lock-open" style="width:14px;height:14px;margin-right:4px;"></i> Ativar{% endif %}
                         </button>
                     </form>
                 </div>
@@ -105,7 +105,7 @@
                 <h3 style="color: var(--gray-700, #4a5568); font-weight: 600;">Nenhuma sala cadastrada</h3>
                 <p class="text-muted mb-4">Você ainda não adicionou nenhum espaço físico ao sistema.</p>
                 <a href="{{ url_for('admin.adicionar_sala') }}" class="btn btn-primary" style="background: linear-gradient(135deg, var(--primary, #6c5ce7) 0%, var(--primary-dark, #5a4fcf) 100%); border: none;">
-                    ➕ Adicionar Primeira Sala
+                    <i data-lucide="plus-circle" style="margin-right:4px;"></i> Adicionar Primeira Sala
                 </a>
             </div>
         </div>
