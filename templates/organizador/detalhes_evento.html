@@ -7,7 +7,7 @@
         <div class="section-header">
             <div style="display: flex; justify-content: space-between; align-items: start;">
                 <div>
-                    <h2 class="section-title" style="margin-bottom: 0.5rem;">{{ evento.nome_evento }}</h2>
+                    <h2 class="section-title" style="margin-bottom: 0.5rem;"><img src="{{ url_for('static', filename='icons/icon_eventos_recentes.png') }}" alt="Evento" class="title-icon"> {{ evento.nome_evento }}</h2>
                     {% if evento.status == 'agendado' %}
                         <span class="badge badge-success">Agendado</span>
                     {% elif evento.status == 'andamento' %}

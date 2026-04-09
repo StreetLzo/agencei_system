@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="page-header mb-4">
-    <h1 class="dashboard-title">📊 Dashboard Administrativo</h1>
+    <h1 class="dashboard-title"><img src="{{ url_for('static', filename='icons/icon_dashboard.png') }}" alt="Dashboard" class="title-icon"> Dashboard Administrativo</h1>
     <p class="dashboard-subtitle">Visão geral em tempo real do sistema AGENCEI</p>
 </div>
 
@@ -76,7 +76,7 @@
 </div>
 
 <div class="quick-actions mb-5">
-    <h2 class="section-title h4 mb-3">⚡ Ações Rápidas</h2>
+    <h2 class="section-title h4 mb-3"><img src="{{ url_for('static', filename='icons/icon_acesso_rapido.png') }}" alt="Ações Rápidas" class="title-icon"> Ações Rápidas</h2>
     <div class="actions-grid">
         <a href="{{ url_for('admin.adicionar_cpf_autorizado') }}" class="action-card">
             <span class="action-icon">➕</span>
@@ -101,7 +101,7 @@
     <div class="col-12 col-xl-7 mb-4">
         <div class="section-surface h-100">
             <div class="section-header d-flex justify-content-between align-items-center mb-4">
-                <h2 class="section-title h5 mb-0">📅 Eventos Recentes</h2>
+                <h2 class="section-title h5 mb-0"><img src="{{ url_for('static', filename='icons/icon_eventos_recentes.png') }}" alt="Eventos Recentes" class="title-icon"> Eventos Recentes</h2>
                 <a href="{{ url_for('admin.eventos') }}" class="btn-link-custom">Ver todos</a>
             </div>
             
@@ -145,7 +145,7 @@
     <div class="col-12 col-xl-5 mb-4">
         <div class="section-surface h-100">
             <div class="section-header mb-4">
-                <h2 class="section-title h5 mb-0">✅ Inscrições Recentes</h2>
+                <h2 class="section-title h5 mb-0"><img src="{{ url_for('static', filename='icons/icon_inscricoes_recentes.png') }}" alt="Inscrições Recentes" class="title-icon"> Inscrições Recentes</h2>
             </div>
             
             <div class="table-responsive">

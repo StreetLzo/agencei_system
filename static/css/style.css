@@ -727,3 +727,43 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
     background-color: var(--primary);
     transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+/* ============================================================
+   ICONS STYLES
+   ============================================================ */
+.title-icon {
+    width: 64px;
+    height: 64px;
+    vertical-align: middle;
+    margin-right: 16px;
+    object-fit: contain;
+    position: relative;
+    top: -4px;
+}
+
+.stat-img-icon {
+    width: 56px;
+    height: 56px;
+    object-fit: contain;
+}
+
+.action-img-icon {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 8px auto;
+    object-fit: contain;
+    transition: transform var(--t-base);
+}
+
+.action-card:hover .action-img-icon {
+    transform: scale(1.1);
+}
+
+[data-theme="dark"] .title-icon,
+[data-theme="dark"] .stat-img-icon,
+[data-theme="dark"] .action-img-icon,
+body.dark-theme .title-icon,
+body.dark-theme .stat-img-icon,
+body.dark-theme .action-img-icon {
+    filter: invert(1) brightness(2);
+}
